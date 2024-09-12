@@ -17,7 +17,7 @@ class EarlyStopping:
         self.patience = patience
         self.losses = []
         self.early_stop = False
-        self.val_loss_min = np.Inf
+        self.val_loss_min = np.inf
         self.delta = 0.0
         self.counter = 0
 

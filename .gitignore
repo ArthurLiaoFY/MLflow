@@ -3,4 +3,5 @@ test*
 *.pkl
 *.DS_Store
 __pycache__
+train_model_results
 *.ini

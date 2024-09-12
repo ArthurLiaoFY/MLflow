@@ -1,11 +1,11 @@
 import pickle
 
-import mlflow
 import numpy as np
 import torch
 from sklearn.model_selection import train_test_split
 from xgboost import XGBRegressor
 
+import mlflow
 from ML_MODELS.DeepModels.models.regression import UphSimulate
 from ML_MODELS.DeepModels.training.early_stopping import EarlyStopping
 from ML_MODELS.DeepModels.training.evaluate import RSquare
@@ -68,7 +68,6 @@ class UphTrainSimulationModel:
         self,
         masked_uph_dict: dict,
         masked_simulate_dict: dict,
-        run_id: str,
     ) -> None:
         tuned_model = self.__fit(
             masked_simulate_array=np.array(masked_simulate_dict.get("data")),
@@ -78,7 +77,7 @@ class UphTrainSimulationModel:
         # model_file_name = f"L3_model_{self.db_address}_{self.db_name}_{self.region_id}_{self.factory_id}_{self.owner_id}_{self.line_id}_{self.sector_id}"
         # model_infos_file_name = f"L3_model_infos_{self.db_address}_{self.db_name}_{self.region_id}_{self.factory_id}_{self.owner_id}_{self.line_id}_{self.sector_id}.pkl"
 
-        with open(f"{self.model_file_path}/{run_id}_infos.pkl", "wb") as f:
+        with open(f"{self.model_file_path}/{self.run_id}_infos.pkl", "wb") as f:
             pickle.dump(
                 {
                     "in_features": masked_simulate_dict.get("columns"),
@@ -92,14 +91,13 @@ class UphTrainSimulationModel:
         match self.model_type:
             case "NN":
                 torch.save(
-                    tuned_model,
-                    f"{self.model_file_path}/{run_id}_model.pt"
+                    tuned_model, f"{self.model_file_path}/{self.run_id}_model.pt"
                 )
                 # torch.jit.script(tuned_model).save(
                 #     f"{self.model_file_path}/{run_id}_model.pt"
                 # )
             case "XGB":
-                with open(f"{self.model_file_path}/{run_id}_model.pkl", "wb") as f:
+                with open(f"{self.model_file_path}/{self.run_id}_model.pkl", "wb") as f:
                     pickle.dump(tuned_model, f)
             case _:
                 raise NotImplementedError
