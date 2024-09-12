@@ -1,21 +1,28 @@
 import gc
+
 import torch
+
 
 def release_memories() -> None:
     gc.collect()
     torch.cuda.empty_cache()
     return None
 
+
 def get_device() -> torch.device:
-    return torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    return torch.device(
+        "cuda:0"
+        if torch.cuda.is_available()
+        else "mps" if torch.backends.mps.is_built() else "cpu"
+    )
 
 
 def check_model_device(model: torch.nn.Module) -> torch.device:
-    return torch.device('cuda:0' if next(model.parameters()).is_cuda else 'cpu')
+    return torch.device("cuda:0" if next(model.parameters()).is_cuda else "cpu")
 
 
 def check_tensor_device(x: torch.Tensor) -> torch.device:
-    return torch.device('cuda:0' if x.get_device() == 0 else 'cpu')
+    return torch.device("cuda:0" if x.get_device() == 0 else "cpu")
 
 
 def log_clamp(x: torch.Tensor, min_value: float = -100.0) -> torch.Tensor:

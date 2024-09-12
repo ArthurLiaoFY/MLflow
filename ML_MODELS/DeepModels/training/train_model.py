@@ -124,6 +124,8 @@ def train_cluster_model(
         torch.manual_seed(seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
+        elif torch.backends.mps.is_available():
+            torch.mps.manual_seed(seed)
 
     for epoch in range(epochs):
         # training
@@ -232,6 +234,8 @@ def train_autoencoder_model(
         torch.manual_seed(seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
+        elif torch.backends.mps.is_available():
+            torch.mps.manual_seed(seed)
 
     for epoch in range(epochs):
         # training
@@ -336,6 +340,8 @@ def train_L5_model(
         torch.manual_seed(seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
+        elif torch.backends.mps.is_available():
+            torch.mps.manual_seed(seed)
 
     for epoch in range(epochs):
         # training
@@ -414,6 +420,15 @@ def train_L5_model(
             )
         )
 
+        mlflow.log_metric(key="training loss", value=f"{training_loss:4f}", step=epoch)
+        mlflow.log_metric(
+            key="validation loss", value=f"{validation_loss:4f}", step=epoch
+        )
+        for fn_name, evaluate_value in validation_eval.items():
+            mlflow.log_metric(
+                key=f"validation {fn_name}", value=f"{evaluate_value:4f}", step=epoch
+            )
+
         early_stopping(val_loss=validation_loss, model_state_dict=nn_model.state_dict())
         if early_stopping.early_stop:
             print(
@@ -440,11 +455,16 @@ def train_L5_model_dev(
 ) -> torch.nn.Module:
     device = get_device()
     nn_model.to(device)
-
+    mlflow.log_text(
+        text="currently using device: {device}".format(device=device),
+        artifact_file="log_file.txt",
+    )
     if seed is not None:
         torch.manual_seed(seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
+        elif torch.backends.mps.is_available():
+            torch.mps.manual_seed(seed)
 
     for epoch in range(epochs):
         # training
@@ -469,6 +489,11 @@ def train_L5_model_dev(
                 print(
                     f"the shape of model prediction {tuple(train_y_pred.shape)} and y value {tuple(train_current_sn_cnt.shape)} is different ! "
                     "this might influence the performance of the model"
+                )
+                mlflow.log_text(
+                    text=f"the shape of model prediction {tuple(train_y_pred.shape)} and y value {tuple(train_current_sn_cnt.shape)} is different ! "
+                    "this might influence the performance of the model",
+                    artifact_file="log_file.txt",
                 )
                 # check train_y_pred shape and train_current_sn_cnt shape
             loss = loss_fn(
@@ -526,6 +551,18 @@ def train_L5_model_dev(
                 ]
             )
         )
+        mlflow.log_text(
+            text=f"Epoch: {epoch} \n"
+            + f"Train loss: {round(training_loss, 4)}; "
+            + f"Valid loss: {round(validation_loss, 4)}; "
+            + "; ".join(
+                [
+                    f"Valid {fn_name}: {round(evaluate_value, 4)}"
+                    for fn_name, evaluate_value in validation_eval.items()
+                ]
+            ),
+            artifact_file="log_file.txt",
+        )
         if early_stopping is not None:
             early_stopping(
                 val_loss=validation_loss, model_state_dict=nn_model.state_dict()
@@ -536,6 +573,13 @@ def train_L5_model_dev(
                     + "*" * 4
                     + " Due to the early stopping mechanism, the training process is halted "
                     + "*" * 4
+                )
+                mlflow.log_text(
+                    text="\n"
+                    + "*" * 4
+                    + " Due to the early stopping mechanism, the training process is halted "
+                    + "*" * 4,
+                    artifact_file="log_file.txt",
                 )
                 break
     if early_stopping is not None:
@@ -782,6 +826,8 @@ def train_L3_model(
         torch.manual_seed(seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
+        elif torch.backends.mps.is_available():
+            torch.mps.manual_seed(seed)
 
     for epoch in range(epochs):
         # training
