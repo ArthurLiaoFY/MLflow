@@ -159,8 +159,8 @@ class UphTrainPredictModel:
             DataLoader(dataset=valid_dataset, batch_size=64, shuffle=False),
         )
 
-    @staticmethod
     def __nn_fit(
+        self,
         num_of_eqp: int,
         num_of_status: int,
         additional_infos: int,
@@ -179,9 +179,9 @@ class UphTrainPredictModel:
             valid_dataloader=valid_dataloader,
             loss_fn=root_mean_square_error,
             evaluate_fns={"R-square": RSquare()},
-            optimizer=torch.optim.SGD(model.parameters(), lr=0.001),
-            early_stopping=EarlyStopping(patience=20),
-            epochs=1000,
+            optimizer=torch.optim.SGD(model.parameters(), lr=self.L5_learning_rate),
+            early_stopping=EarlyStopping(patience=self.L5_early_stopping_patience),
+            epochs=self.L5_epoch,
         )
 
         return tuned_model
@@ -191,7 +191,6 @@ class UphTrainPredictModel:
         agg_status_dict: dict,
         prod_capacity_dict: dict,
         sn_dict: dict,
-        model_file_path: str = ".",
     ) -> None:
         lagged_sn_cnt, additional_info, lagged_eqp_status_block, current_sn_cnt = (
             self.__get_lagged_df(
@@ -217,12 +216,10 @@ class UphTrainPredictModel:
             valid_dataloader=valid_dataloader,
         )
         suffix = f"_{self.db_address}_{self.db_name}_{self.owner_id}_{self.line_id}_{self.sector_id}"
-        model_file_name = f"{model_file_path}/L5_model_{suffix}.pt"
-        historical_eqp_status_block_file_name = (
-            f"{model_file_path}/historical_eqp_status_block_{suffix}.npy"
-        )
+        model_file_name = f"{self.model_file_path}/L5_model_{suffix}.pt"
+        historical_eqp_status_block_file_name = f"{self.model_file_path}/{self.run_id}_historical_eqp_status_block_{suffix}.npy"
         future_eqp_status_block_file_name = (
-            f"{model_file_path}/future_eqp_status_block_{suffix}.npy"
+            f"{self.model_file_path}/{self.run_id}_future_eqp_status_block_{suffix}.npy"
         )
 
         torch.jit.script(model).save(model_file_name)

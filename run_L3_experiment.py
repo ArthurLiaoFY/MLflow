@@ -17,9 +17,9 @@ os.environ["MLFLOW_TRACKING_PASSWORD"] = config["MLflow"]["tracking_password"]
 
 # Create an experiment and log two runs under it
 
-experiment = mlflow.get_experiment_by_name(config["MLflow"]["experiment_name"])
+experiment = mlflow.get_experiment_by_name(config["Holmes_L3"]["experiment_name"])
 experiment_id = (
-    mlflow.create_experiment(config["MLflow"]["experiment_name"])
+    mlflow.create_experiment(config["Holmes_L3"]["experiment_name"])
     if not experiment
     else (
         experiment.experiment_id
