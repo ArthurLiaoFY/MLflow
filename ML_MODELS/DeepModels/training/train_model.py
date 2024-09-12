@@ -102,7 +102,7 @@ def train_model(
                 + "*" * 4
             )
             break
-    nn_model.load_state_dict(torch.load(early_stopping.best_model_state))
+    nn_model.load_state_dict(torch.load(early_stopping.best_model_state, weights_only=True))
     return nn_model
 
 
@@ -212,7 +212,7 @@ def train_cluster_model(
                 + "*" * 4
             )
             break
-    nn_model.load_state_dict(torch.load(early_stopping.best_model_state))
+    nn_model.load_state_dict(torch.load(early_stopping.best_model_state, weights_only=True))
     return nn_model
 
 
@@ -318,7 +318,7 @@ def train_autoencoder_model(
                 + "*" * 4
             )
             break
-    nn_model.load_state_dict(torch.load(early_stopping.best_model_state))
+    nn_model.load_state_dict(torch.load(early_stopping.best_model_state, weights_only=True))
     return nn_model
 
 
@@ -438,7 +438,7 @@ def train_L5_model(
                 + "*" * 4
             )
             break
-    nn_model.load_state_dict(torch.load(early_stopping.best_model_state))
+    nn_model.load_state_dict(torch.load(early_stopping.best_model_state, weights_only=True))
     return nn_model
 
 
@@ -563,6 +563,15 @@ def train_L5_model_dev(
             ),
             artifact_file="log_file.txt",
         )
+        
+        mlflow.log_metric(key="training loss", value=f"{training_loss:4f}", step=epoch)
+        mlflow.log_metric(
+            key="validation loss", value=f"{validation_loss:4f}", step=epoch
+        )
+        for fn_name, evaluate_value in validation_eval.items():
+            mlflow.log_metric(
+                key=f"validation {fn_name}", value=f"{evaluate_value:4f}", step=epoch
+            )
         if early_stopping is not None:
             early_stopping(
                 val_loss=validation_loss, model_state_dict=nn_model.state_dict()
@@ -583,7 +592,7 @@ def train_L5_model_dev(
                 )
                 break
     if early_stopping is not None:
-        nn_model.load_state_dict(torch.load(early_stopping.best_model_state))
+        nn_model.load_state_dict(torch.load(early_stopping.best_model_state, weights_only=True))
     return nn_model
 
 
@@ -707,7 +716,7 @@ def train_L5_model_dev2(
                 )
                 break
     if early_stopping is not None:
-        nn_model.load_state_dict(torch.load(early_stopping.best_model_state))
+        nn_model.load_state_dict(torch.load(early_stopping.best_model_state, weights_only=True))
     return nn_model
 
 
@@ -800,7 +809,7 @@ def train_SoH_model(
                 + "*" * 4
             )
             break
-    nn_model.load_state_dict(torch.load(early_stopping.best_model_state))
+    nn_model.load_state_dict(torch.load(early_stopping.best_model_state, weights_only=True))
     return nn_model
 
 
