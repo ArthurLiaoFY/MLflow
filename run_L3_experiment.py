@@ -55,8 +55,6 @@ with mlflow.start_run(
         "L3_epoch": 5,
         "db_address": "10.146.208.99.5432",
         "db_name": "WJ_C02",
-        "region_id": "1",
-        "factory_id": "1",
         "owner_id": "1",
         "line_id": "1",
         "sector_id": "1",
