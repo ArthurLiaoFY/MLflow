@@ -11,8 +11,11 @@ config.read("config.ini")
 
 # Set MLflow tracking URI and environment variables
 mlflow.set_tracking_uri(uri=config["MLflow"]["tracking_server_url"])
-os.environ["MLFLOW_TRACKING_USERNAME"] = config["MLflow"]["tracking_username"]
-os.environ["MLFLOW_TRACKING_PASSWORD"] = config["MLflow"]["tracking_password"]
+
+if config["MLflow"].get("tracking_username"):
+    os.environ["MLFLOW_TRACKING_USERNAME"] = config["MLflow"]["tracking_username"]
+if config["MLflow"].get("tracking_password"):
+    os.environ["MLFLOW_TRACKING_PASSWORD"] = config["MLflow"]["tracking_password"]
 
 
 # Create an experiment and log two runs under it
