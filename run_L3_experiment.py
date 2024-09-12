@@ -47,7 +47,7 @@ with mlflow.start_run(
     # eventually, the data will be provided by backend API
     kwargs = {
         "model_file_path": "./SCHEDULED_MODEL/Holmes/P/L3/train_model_results",
-        "model_type": "XGB",
+        "model_type": "NN",
         "seed": 1122,
         "L3_early_stopping_patience": 20,
         "L3_validation_size": 0.3,

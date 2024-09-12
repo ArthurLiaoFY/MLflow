@@ -817,7 +817,7 @@ def train_L3_model(
 ) -> torch.nn.Module:
     device = get_device()
     mlflow.log_text(
-        text="currently using device: {device}".format(device=device),
+        text=f"currently using device: {device}",
         artifact_file="log_file.txt",
     )
     nn_model.to(device)
@@ -841,7 +841,7 @@ def train_L3_model(
             )  # Make prediction by passing X to our model
             if train_y_pred.shape != train_y.shape:
                 mlflow.log_text(
-                    text="the shape of model prediction and y value is different ! "
+                    text=f"the shape of model prediction {tuple(train_y_pred.shape)} and y value {tuple(train_y.shape)}  is different ! "
                     "this might influence the performance of the model",
                     artifact_file="log_file.txt",
                 )
@@ -876,14 +876,6 @@ def train_L3_model(
                 validation_eval[fn_name] = evaluate_fn.finish().item()
 
             validation_loss /= len(valid_dataloader)
-        # print('-' * 80)
-        # print(
-        #     f'Epoch: {epoch} \n' +
-        #     f'Train loss: {round(training_loss, 4)}; ' +
-        #     f'Valid loss: {round(validation_loss, 4)}; ' +
-        #     '; '.join(
-        #         [f'Valid {fn_name}: {round(evaluate_value, 4)}' for fn_name, evaluate_value in validation_eval.items()])
-        # )
         mlflow.log_metric(key="training loss", value=f"{training_loss:4f}", step=epoch)
         mlflow.log_metric(
             key="validation loss", value=f"{validation_loss:4f}", step=epoch
