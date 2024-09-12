@@ -1,0 +1,6 @@
+test*
+*.venv
+*.pkl
+*.DS_Store
+__pycache__
+*.ini
