@@ -2,6 +2,7 @@ import pickle
 
 import numpy as np
 import torch
+import torch.backends.cudnn as cudnn
 from sklearn.model_selection import train_test_split
 from xgboost import XGBRegressor
 
@@ -12,6 +13,8 @@ from ML_MODELS.DeepModels.training.evaluate import RSquare
 from ML_MODELS.DeepModels.training.loss import root_mean_square_error
 from ML_MODELS.DeepModels.training.train_model import train_L3_model
 from ML_MODELS.DeepModels.utils.prepare_data import to_dataloader
+
+cudnn.benchmark = True
 
 
 class UphTrainSimulationModel:
