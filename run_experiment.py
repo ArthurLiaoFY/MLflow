@@ -1,10 +1,7 @@
-# %%
 import os
 import pickle
 from configparser import ConfigParser
 from datetime import datetime
-
-import pandas as pd
 
 import mlflow
 from SCHEDULED_MODEL.Holmes.P.L3.train_sim_model import UphTrainSimulationModel
@@ -16,9 +13,6 @@ config.read("config.ini")
 mlflow.set_tracking_uri(uri=config["MLflow"]["tracking_server_url"])
 os.environ["MLFLOW_TRACKING_USERNAME"] = config["MLflow"]["tracking_username"]
 os.environ["MLFLOW_TRACKING_PASSWORD"] = config["MLflow"]["tracking_password"]
-
-
-# %%
 
 
 # Create an experiment and log two runs under it
@@ -33,7 +27,6 @@ experiment_id = (
         else experiment
     )
 )
-# %%
 
 with mlflow.start_run(
     experiment_id=experiment_id,
@@ -83,11 +76,3 @@ with mlflow.start_run(
 
     # Log parameters and metrics using the MLflow APIs
     mlflow.log_params(kwargs)
-
-    # # Log the sklearn model and register as version 1
-    # mlflow.sklearn.log_model(
-    #     sk_model=model,
-    #     artifact_path="sklearn-model",
-    #     input_example=X_train,
-    #     registered_model_name="sk-learn-random-forest-reg-model",
-    # )
