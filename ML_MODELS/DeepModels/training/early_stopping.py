@@ -1,8 +1,9 @@
 import io
 
-import mlflow
 import numpy as np
 import torch
+
+import mlflow
 
 
 class EarlyStopping:

@@ -2,7 +2,9 @@ import torch
 
 
 class InstanceNorm(torch.nn.Module):
-    def __init__(self, num_features: int, eps: float = 1e-5, subtract_last: bool = False):
+    def __init__(
+        self, num_features: int, eps: float = 1e-5, subtract_last: bool = False
+    ):
         super(InstanceNorm, self).__init__()
         self.num_features = num_features
         print(num_features)
@@ -24,15 +26,16 @@ class InstanceNorm(torch.nn.Module):
         return normed_x
 
     def _denormalize(self, normed_x: torch.Tensor) -> torch.Tensor:
-        x = normed_x * (self.scale if self.scale is not None else torch.ones_like(normed_x)) + (
-            self.center if self.center is not None else torch.zeros_like(normed_x))
+        x = normed_x * (
+            self.scale if self.scale is not None else torch.ones_like(normed_x)
+        ) + (self.center if self.center is not None else torch.zeros_like(normed_x))
         return x
 
-    def forward(self, x: torch.Tensor, mode: str = 'norm') -> torch.Tensor:
-        if mode == 'norm':
+    def forward(self, x: torch.Tensor, mode: str = "norm") -> torch.Tensor:
+        if mode == "norm":
             return self._normalize(x)
 
-        elif mode == 'denorm':
+        elif mode == "denorm":
             return self._denormalize(x)
         else:
             raise NotImplementedError

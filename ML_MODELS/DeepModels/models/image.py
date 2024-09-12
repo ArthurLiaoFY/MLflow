@@ -1,4 +1,5 @@
 import torch
+
 from ML_MODELS.DeepModels.utils.tools import get_device
 
 
@@ -13,12 +14,10 @@ class CNNLReluStack(torch.nn.Module):
             torch.nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3),
             torch.nn.LeakyReLU(negative_slope=0.01),
             torch.nn.MaxPool2d(kernel_size=2),
-
             torch.nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3),
             torch.nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3),
             torch.nn.LeakyReLU(negative_slope=0.01),
             torch.nn.MaxPool2d(kernel_size=2),
-
             torch.nn.Flatten(),
             torch.nn.Linear(in_features=512, out_features=64),
             torch.nn.Linear(in_features=64, out_features=self.D_out),
