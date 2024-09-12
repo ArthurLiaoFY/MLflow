@@ -21,15 +21,18 @@ class UphTrainSimulationModel:
     def __fit(
         self, masked_simulate_array: np.ndarray, masked_uph_array: np.ndarray
     ) -> torch.nn.Module | XGBRegressor:
+        train_x, test_x, train_y, test_y = train_test_split(
+            masked_simulate_array,
+            masked_uph_array,
+            test_size=self.L3_validation_size,
+            shuffle=True,
+            random_state=self.seed,
+        )
+        mlflow.set_tag("model_type", self.model_type)
+
         match self.model_type:
             case "NN":
-                train_x, test_x, train_y, test_y = train_test_split(
-                    masked_simulate_array,
-                    masked_uph_array,
-                    test_size=self.L3_validation_size,
-                    shuffle=True,
-                    random_state=self.seed,
-                )
+
                 model = UphSimulate(
                     in_features=train_x.shape[1],
                     out_features=1,
@@ -38,7 +41,7 @@ class UphTrainSimulationModel:
                 tuned_model = train_L3_model(
                     nn_model=model,
                     train_dataloader=to_dataloader(train_x, train_y, shuffle=True),
-                    valid_dataloader=to_dataloader(test_x, test_y, shuffle=True),
+                    valid_dataloader=to_dataloader(test_x, test_y, shuffle=False),
                     loss_fn=root_mean_square_error,
                     evaluate_fns={"R-square": RSquare()},
                     optimizer=torch.optim.Adam(
@@ -52,13 +55,29 @@ class UphTrainSimulationModel:
             case "XGB":
                 tuned_model = XGBRegressor(seed=self.seed)
                 tuned_model.fit(
-                    masked_simulate_array,
-                    masked_uph_array,
+                    train_x,
+                    train_y,
                 )
-                mlflow.sklearn.log_model(
-                    sk_model=tuned_model,
-                    artifact_path="L3_model",
+
+                pred_train_y = tuned_model.predict(train_x)
+                pred_test_y = tuned_model.predict(test_x)
+
+                mlflow.log_metric(
+                    key="training loss",
+                    value=f"{np.sqrt(np.pow((pred_train_y - train_y), 2).mean()):4f}",
+                    step=0,
                 )
+                mlflow.log_metric(
+                    key="validation loss",
+                    value=f"{np.sqrt(np.pow((pred_test_y - test_y), 2).mean()):4f}",
+                    step=0,
+                )
+                mlflow.log_metric(
+                    key="validation R-square",
+                    value=f"{1.0 - sum(np.pow(test_y - pred_test_y, 2))/sum(np.pow(test_y - test_y.mean(), 2)):4f}",
+                    step=0,
+                )
+
             case _:
                 raise NotImplementedError
 

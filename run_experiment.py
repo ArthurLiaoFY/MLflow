@@ -54,7 +54,7 @@ with mlflow.start_run(
     # eventually, the data will be provided by backend API
     kwargs = {
         "model_file_path": "./SCHEDULED_MODEL/Holmes/P/L3/train_model_results",
-        "model_type": "NN",
+        "model_type": "XGB",
         "seed": 1122,
         "L3_early_stopping_patience": 20,
         "L3_validation_size": 0.3,
@@ -83,8 +83,6 @@ with mlflow.start_run(
 
     # Log parameters and metrics using the MLflow APIs
     mlflow.log_params(kwargs)
-
-    mlflow.log_metrics({"mse": 100})
 
     # # Log the sklearn model and register as version 1
     # mlflow.sklearn.log_model(
