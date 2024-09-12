@@ -4,7 +4,7 @@ from configparser import ConfigParser
 from datetime import datetime
 
 import mlflow
-from SCHEDULED_MODEL.Holmes.P.L5.train_pred_model import UphTrainPredictModel
+from SCHEDULED_MODEL.Holmes.P.L5.train_L5_model import UphTrainPredictModel
 
 config = ConfigParser()
 config.read("config.ini")
