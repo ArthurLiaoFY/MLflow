@@ -46,24 +46,14 @@ class LinearModel:
 
         self.fitted = True
 
-    def plot_residual(self) -> None:
+    def predict(self, x: np.ndarray) -> np.ndarray:
         if not self.fitted:
             raise ValueError(
                 "The model has not been fitted yet. Call the fit method first."
             )
 
-        fig = go.Figure(
-            go.Scatter(
-                x=np.arange(len(self.residuals)), y=self.residuals, mode="markers"
-            )
-        )
-        fig.update_layout(
-            title_text="Residual Plot",
-            title_x=0.5,
-            xaxis_title="Index",
-            yaxis_title="Residuals",
-        )
-        fig.show()
+        x = self.__add_intercept(x)
+        return x @ self.beta_hat
 
     def summary(self) -> dict:
         if not self.fitted:
@@ -105,45 +95,26 @@ class LinearModel:
             "se(beta)": {k: b for k, b in zip(row_idx, np.sqrt(np.diag(self.cov_mat)))},
             "test_statistic": {k: b for k, b in zip(row_idx, t_statistic)},
             "p_value": {k: b for k, b in zip(row_idx, t_p_values)},
-        }
+        }  # pd.DataFrame.from_dict(lm.summary(), orient="columns")
 
-    def predict(self, x: np.ndarray) -> np.ndarray:
+    def plot_residual(self) -> None:
         if not self.fitted:
             raise ValueError(
                 "The model has not been fitted yet. Call the fit method first."
             )
 
-        x = self.__add_intercept(x)
-        return x @ self.beta_hat
+        fig = go.Figure(
+            go.Scatter(
+                x=np.arange(len(self.residuals)), y=self.residuals, mode="markers"
+            )
+        )
+        fig.update_layout(
+            title_text="Residual Plot",
+            title_x=0.5,
+            xaxis_title="Index",
+            yaxis_title="Residuals",
+        )
+        fig.show()
 
     def lm_report(self):
         pass
-
-
-# %%
-import pandas as pd
-
-iris = pd.read_csv("iris.csv")
-# %%
-lm = LinearModel()
-lm.fit(
-    x=iris[["Sepal.Width", "Petal.Length", "Petal.Width"]],
-    y=iris["Sepal.Length"].to_numpy(),
-    f_names=["Sepal.Width", "Petal.Length", "Petal.Width"],
-)
-lm.plot_residual()
-# %%
-pd.DataFrame.from_dict(lm.summary(), orient="columns")
-
-# %%
-lm.r_square
-# %%
-lm.adj_r_square
-# %%
-lm.p
-
-# %%
-lm.f_statistic
-# %%
-lm.f_p_value
-# %%
