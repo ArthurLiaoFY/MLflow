@@ -4,6 +4,7 @@ from datetime import datetime
 
 import mlflow
 from models.deep_models.utils.tools import get_device
+from projects.curve_classify.balance_data import up_sampling
 from projects.curve_classify.load_data import load_data
 from projects.curve_classify.train import CurveClassify
 from setup_mlflow import setup_experiment, setup_mlflow
@@ -49,14 +50,23 @@ with mlflow.start_run(
     ),
 ) as run:
 
-    curve, cum_curve, label = load_data(
+    _, cum_curve, label = load_data(
         data_file_path=config["curve_classify"]["data_file_path"]
     )
+    # TODO: curve SMOTE
 
-    cc = CurveClassify(run_id=run.info.run_id, **config["model"])
-    cc.train_model(
+    dup_curve_array, dup_label_array = up_sampling(
         curve_array=cum_curve.to_numpy(),
         label_array=label["test_result"].to_numpy(),
+        seed=int(config["model"]["seed"]),
+    )
+    cc = CurveClassify(
+        run_id=run.info.run_id,
+        **config["model"],
+    )
+    cc.train_model(
+        curve_array=dup_curve_array,
+        label_array=dup_label_array,
     )
 
 # FIXME: training & validation loss de-generate to nan
