@@ -4,7 +4,7 @@ import torch
 from torch.nn.functional import one_hot
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 from collections.abc import Iterable
-from ML_MODELS.DeepModels.utils.tools import get_device
+from ml_models.deep_models.utils.tools import get_device
 from torch.utils.data import Sampler
 
 

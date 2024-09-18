@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from LinearModel import LinearModel, f
+from ml_models.linear_models.linear_model import LinearModel, f
 
 
 class Nested_ANOVA:
