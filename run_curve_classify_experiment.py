@@ -4,7 +4,7 @@ from configparser import ConfigParser
 import torch
 from sklearn.model_selection import train_test_split
 
-from models.deep_models.models.conv_gru_att import Convolutional1DGRUAttention
+from models.deep_models.models.conv_gru_att import ConvolutionalGRUAttention
 from models.deep_models.utils.prepare_data import to_dataloader
 from models.deep_models.utils.tools import (
     check_model_device,
@@ -39,7 +39,7 @@ valid_loader = to_dataloader(
 )
 # %%
 device = get_device()
-conv_gru_att = Convolutional1DGRUAttention(
+conv_gru_att = ConvolutionalGRUAttention(
     conv_in_channels=1,  # C in shape : (B, C, H)
     conv_out_channels=32,  # C in shape : (B, C, H)
     gru_input_size=cum_curve.shape[1],

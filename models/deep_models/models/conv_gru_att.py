@@ -3,7 +3,7 @@ import torch
 from models.deep_models.utils.prepare_data import get_device
 
 
-class Convolutional1DGRUAttention(torch.nn.Module):
+class ConvolutionalGRUAttention(torch.nn.Module):
     def __init__(
         self,
         conv_in_channels: int,
@@ -14,7 +14,7 @@ class Convolutional1DGRUAttention(torch.nn.Module):
         attention_num_of_head: int = 8,
         out_feature_size: int = 2,
     ):
-        super(Convolutional1DGRUAttention, self).__init__()
+        super(ConvolutionalGRUAttention, self).__init__()
         self.device = get_device()
         self.gru_hidden_size = gru_hidden_size
         self.gru_layer_amount = gru_layer_amount
