@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Callable, Mapping
 
 import torch
@@ -39,6 +40,7 @@ def train_model(
             torch.mps.manual_seed(seed)
 
     for epoch in range(epochs):
+        start = datetime.now()
         # training
         nn_model.train()
         training_loss = 0.0
@@ -88,7 +90,7 @@ def train_model(
 
         log.write("-" * 80 + "\n")
         log.write(
-            f"Epoch: {epoch} \n"
+            f"Epoch: {epoch}, Use Time: {(datetime.now() - start).seconds} Second. \n"
             + f"Train loss: {round(training_loss, 4)}; "
             + f"Valid loss: {round(validation_loss, 4)}; "
             + "; ".join(
@@ -122,5 +124,8 @@ def train_model(
     nn_model.load_state_dict(
         torch.load(early_stopping.best_model_state, weights_only=True),
     )
-    mlflow.log_artifact(log_file_path)
+    mlflow.log_artifact(
+        run_id=run_id,
+        local_path=log_file_path,
+    )
     return nn_model
