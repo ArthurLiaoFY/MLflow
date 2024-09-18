@@ -12,13 +12,19 @@ class LinearModel:
         self.intercept = intercept
         self.fitted = False
 
-    def __add_intercept(self, x: np.ndarray) -> np.ndarray:
+    def __add_intercept(
+        self,
+        x: np.ndarray,
+    ) -> np.ndarray:
         if self.intercept:
             return np.concatenate((np.ones((x.shape[0], 1)), x), axis=1)
         return x
 
     def fit(
-        self, x: np.ndarray, y: np.ndarray, f_names: Optional[List[str]] = None
+        self,
+        x: np.ndarray,
+        y: np.ndarray,
+        f_names: Optional[List[str]] = None,
     ) -> None:
         self.feature_names = (
             f_names if f_names is not None else [f"f{i}" for i in range(x.shape[1])]
@@ -46,7 +52,10 @@ class LinearModel:
 
         self.fitted = True
 
-    def predict(self, x: np.ndarray) -> np.ndarray:
+    def predict(
+        self,
+        x: np.ndarray,
+    ) -> np.ndarray:
         if not self.fitted:
             raise ValueError(
                 "The model has not been fitted yet. Call the fit method first."
