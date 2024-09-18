@@ -5,8 +5,8 @@ from sklearn.model_selection import train_test_split
 
 from models.deep_models.models.conv_gru_att import ConvolutionalGRUAttention
 from models.deep_models.training.early_stopping import EarlyStopping
-from models.deep_models.training.evaluate import RSquare
-from models.deep_models.training.loss import root_mean_square_error
+from models.deep_models.training.evaluate import Accuracy, Precision, Recall
+from models.deep_models.training.loss import binary_cross_entropy_loss
 from models.deep_models.training.train_model import train_model
 from models.deep_models.utils.prepare_data import to_dataloader
 
@@ -41,8 +41,12 @@ class CurveClassify:
             nn_model=model,
             train_dataloader=to_dataloader(train_x, train_y, shuffle=True),
             valid_dataloader=to_dataloader(test_x, test_y, shuffle=False),
-            loss_fn=root_mean_square_error,
-            evaluate_fns={"R-square": RSquare()},
+            loss_fn=binary_cross_entropy_loss,
+            evaluate_fns={
+                "Accuracy": Accuracy(),
+                "Precision": Precision(),
+                "Recall": Recall(),
+            },
             optimizer=torch.optim.Adam(
                 model.parameters(), lr=float(self.learning_rate)
             ),

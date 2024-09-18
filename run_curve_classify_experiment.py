@@ -1,12 +1,8 @@
 # %%
-import os
 from configparser import ConfigParser
 from datetime import datetime
 
-import torch
-
 import mlflow
-from models.deep_models.models.conv_gru_att import ConvolutionalGRUAttention
 from models.deep_models.utils.tools import get_device
 from projects.curve_classify.load_data import load_data
 from projects.curve_classify.train import CurveClassify
@@ -38,14 +34,27 @@ experiment_id = setup_experiment(config=config)
 #     ),
 # ) as run:
 #     pass
-# %%
-curve, cum_curve, label = load_data(
-    data_file_path=config["curve_classify"]["data_file_path"]
-)
-# %%
-cc = CurveClassify(run_id="", **config["model"])
-cc.train_model(
-    curve_array=cum_curve.to_numpy(),
-    label_array=label["test_result"].to_numpy(),
-)
-# %%
+
+
+with mlflow.start_run(
+    run_name="".join(
+        [
+            str(datetime.now().year),
+            str(datetime.now().month),
+            str(datetime.now().day),
+            str(datetime.now().hour),
+            str(datetime.now().minute),
+            str(datetime.now().second),
+        ]
+    ),
+) as run:
+
+    curve, cum_curve, label = load_data(
+        data_file_path=config["curve_classify"]["data_file_path"]
+    )
+
+    cc = CurveClassify(run_id="", **config["model"])
+    cc.train_model(
+        curve_array=cum_curve.to_numpy(),
+        label_array=label["test_result"].to_numpy(),
+    )
