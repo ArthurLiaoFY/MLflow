@@ -72,14 +72,18 @@ class Convolutional1DGRUAttention(torch.nn.Module):
 
         # if embedding into higher dimension, will the result be better
         self.multihead_attention_block = torch.nn.MultiheadAttention(
-            embed_dim=gru_hidden_size, num_heads=8, batch_first=True, device=self.device
+            embed_dim=gru_hidden_size,
+            num_heads=8,
+            batch_first=True,
+            device=self.device,
         )
         # multihead_attention_block in size : (batch size, conv_out_channels, gru_hidden_size)
         # multihead_attention_block out size : (batch size, conv_out_channels, gru_hidden_size)
         self.flatten = torch.nn.Flatten()
         self.final_layer = torch.nn.Sequential(
             torch.nn.Linear(
-                in_features=conv_out_channels * gru_hidden_size, out_features=256
+                in_features=conv_out_channels * gru_hidden_size,
+                out_features=256,
             ),
             torch.nn.Dropout(0.3),
             torch.nn.LeakyReLU(negative_slope=0.01),
