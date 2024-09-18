@@ -92,7 +92,7 @@ class ConvolutionalGRUAttention(torch.nn.Module):
             ),
             torch.nn.Dropout(0.3),
             torch.nn.LeakyReLU(negative_slope=0.01),
-            torch.nn.Linear(in_features=64, out_features=64),
+            torch.nn.Linear(in_features=64, out_features=32),
             torch.nn.Dropout(0.3),
             torch.nn.LeakyReLU(negative_slope=0.01),
             torch.nn.Linear(in_features=32, out_features=out_feature_size),
