@@ -7,3 +7,5 @@ train_model_results
 mlflow_config.ini
 *.html
 *.png
+*.pt
+*.txt

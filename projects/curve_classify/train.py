@@ -18,12 +18,10 @@ class CurveClassify:
         self.run_id = run_id
         self.__dict__.update(kwargs)
 
-    def train_model(
-        self, run_id: str, curve_array: np.ndarray, label_array: np.ndarray
-    ) -> None:
+    def train_model(self, curve_array: np.ndarray, label_array: np.ndarray) -> None:
         train_x, test_x, train_y, test_y = train_test_split(
-            curve_array,
-            label_array,
+            curve_array[:, np.newaxis, :],
+            np.array([[1.0, 0.0] if res == -1 else [0.0, 1.0] for res in label_array]),
             test_size=float(self.validation_size),
             shuffle=True,
             random_state=int(self.seed),
@@ -39,15 +37,18 @@ class CurveClassify:
         )
 
         tuned_model = train_model(
-            run_id=run_id,
+            run_id=self.run_id,
             nn_model=model,
             train_dataloader=to_dataloader(train_x, train_y, shuffle=True),
             valid_dataloader=to_dataloader(test_x, test_y, shuffle=False),
             loss_fn=root_mean_square_error,
             evaluate_fns={"R-square": RSquare()},
-            optimizer=torch.optim.Adam(model.parameters(), lr=self.learning_rate),
-            early_stopping=EarlyStopping(patience=self.early_stopping_patience),
-            epochs=self.epoch,
+            optimizer=torch.optim.Adam(
+                model.parameters(), lr=float(self.learning_rate)
+            ),
+            early_stopping=EarlyStopping(patience=int(self.early_stopping_patience)),
+            log_file_path=self.log_file_path,
+            epochs=int(self.epoch),
         )
         torch.save(tuned_model, f"{self.model_file_path}/{self.run_id}_model.pt")
         return None

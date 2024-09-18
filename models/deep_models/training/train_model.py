@@ -18,16 +18,16 @@ def train_model(
     evaluate_fns: Mapping[str, Accuracy | Recall | Precision | RSquare],
     optimizer: torch.optim.Optimizer,
     early_stopping: EarlyStopping,
-    plot_file_path: str,
+    log_file_path: str,
     epochs: int = 100,
     seed: int | None = 1122,
 ) -> torch.nn.Module:
 
     device = get_device()
-    log_file_path = f"{plot_file_path}/{run_id}_log_file.txt"
+    log_file_path = f"{log_file_path}/{run_id}_log_file.txt"
 
-    with open(log_file_path, "w") as log:
-        log.write(f"currently using device: {device}\n")
+    log = open(log_file_path, "w")
+    log.write(f"currently using device: {device}\n")
 
     nn_model.to(device)
 
