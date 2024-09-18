@@ -7,7 +7,7 @@ from ml_projects.curve_classify.load_data import load_data
 from ml_projects.curve_classify.plot_fn import plot_curve
 
 # %%
-curve, cum_curve, label = load_data()
+curve, cum_curve, label = load_data('./data/curve_classify')
 # %%
 np.unique(
     label["test_result"],

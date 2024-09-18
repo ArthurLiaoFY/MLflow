@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from common.plot_fn import plot_wafer
+from ml_projects.wafer_overlay.plot_fn import plot_wafer
 
 
 def load_data(data_file_path: str, drop_columns: list[str] | None = None):

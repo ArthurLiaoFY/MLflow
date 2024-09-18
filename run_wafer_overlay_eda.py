@@ -9,7 +9,7 @@ from ml_projects.wafer_overlay.plot_fn import plot_boxplot, plot_scatter, plot_w
 
 # %%
 df = load_data(
-    data_file_path="./data",
+    data_file_path="./data/wafer_overlay",
     drop_columns=[
         "A1_Space.Bot.CD",
         "A1_Line.Bot.CD",
