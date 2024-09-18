@@ -11,6 +11,7 @@ class Convolutional1DGRUAttention(torch.nn.Module):
         gru_input_size: int,
         gru_hidden_size: int,
         gru_layer_amount: int = 2,
+        attention_num_of_head: int = 8,
         out_feature_size: int = 2,
     ):
         super(Convolutional1DGRUAttention, self).__init__()
@@ -27,8 +28,10 @@ class Convolutional1DGRUAttention(torch.nn.Module):
             torch.nn.BatchNorm1d(num_features=conv_out_channels),
             torch.nn.LeakyReLU(),
         )
+
         # conv_1d_layer in size : (batch size, in_channels, 1d input size)
         # conv_1d_layer out size : (batch size, out_channels, 1d input size)
+
         self.gru_layer = torch.nn.GRU(
             input_size=gru_input_size,
             hidden_size=gru_hidden_size,
@@ -38,8 +41,10 @@ class Convolutional1DGRUAttention(torch.nn.Module):
             dropout=0.4,
             bidirectional=False,
         )
+
         # gru_layer in size : (batch size, sequence len, gru_input_size(1d input size))
         # gru_layer out size : (batch size, sequence len, gru_hidden_size)
+
         self.q_conv_layer = torch.nn.Sequential(
             torch.nn.Conv1d(
                 in_channels=conv_out_channels,
@@ -73,7 +78,7 @@ class Convolutional1DGRUAttention(torch.nn.Module):
         # if embedding into higher dimension, will the result be better
         self.multihead_attention_block = torch.nn.MultiheadAttention(
             embed_dim=gru_hidden_size,
-            num_heads=8,
+            num_heads=attention_num_of_head,
             batch_first=True,
             device=self.device,
         )
@@ -83,14 +88,14 @@ class Convolutional1DGRUAttention(torch.nn.Module):
         self.final_layer = torch.nn.Sequential(
             torch.nn.Linear(
                 in_features=conv_out_channels * gru_hidden_size,
-                out_features=256,
+                out_features=64,
             ),
             torch.nn.Dropout(0.3),
             torch.nn.LeakyReLU(negative_slope=0.01),
-            torch.nn.Linear(in_features=256, out_features=64),
+            torch.nn.Linear(in_features=64, out_features=64),
             torch.nn.Dropout(0.3),
             torch.nn.LeakyReLU(negative_slope=0.01),
-            torch.nn.Linear(in_features=64, out_features=out_feature_size),
+            torch.nn.Linear(in_features=32, out_features=out_feature_size),
             torch.nn.Sigmoid(),
         )
         self.flatten = torch.nn.Flatten()
