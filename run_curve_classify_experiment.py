@@ -1,9 +1,12 @@
 # %%
+import os
 from configparser import ConfigParser
+from datetime import datetime
 
 import torch
 from sklearn.model_selection import train_test_split
 
+import mlflow
 from models.deep_models.models.conv_gru_att import ConvolutionalGRUAttention
 from models.deep_models.utils.prepare_data import to_dataloader
 from models.deep_models.utils.tools import (
@@ -12,11 +15,34 @@ from models.deep_models.utils.tools import (
     get_device,
 )
 from projects.curve_classify.load_data import load_data
+from setup_mlflow import setup_experiment, setup_mlflow
+
+device = get_device()
 
 # %%
-device = get_device()
+# setting up mlflow
+mlflow_config = ConfigParser()
+mlflow_config.read("mlflow_config.ini")
+setup_mlflow(mlflow_config=mlflow_config)
+
 config = ConfigParser()
 config.read("projects/curve_classify/curve_classify.ini")
+experiment_id = setup_experiment(config=config)
+
+# with mlflow.start_run(
+#     experiment_id=experiment_id,
+#     run_name="".join(
+#         [
+#             str(datetime.now().year),
+#             str(datetime.now().month),
+#             str(datetime.now().day),
+#             str(datetime.now().hour),
+#             str(datetime.now().minute),
+#             str(datetime.now().second),
+#         ]
+#     ),
+# ) as run:
+#     pass
 # %%
 curve, cum_curve, label = load_data(
     data_file_path=config["curve_classify"]["data_file_path"]
@@ -38,10 +64,10 @@ valid_loader = to_dataloader(
     label.loc[val_idx, "test_result"].to_numpy(),
 )
 # %%
-device = get_device()
+
 conv_gru_att = ConvolutionalGRUAttention(
     conv_in_channels=1,  # C in shape : (B, C, H)
-    conv_out_channels=32,  # C in shape : (B, C, H)
+    conv_out_channels=32,  # C' in shape : (B, C', H)
     gru_input_size=cum_curve.shape[1],
     gru_hidden_size=64,
     gru_layer_amount=2,
