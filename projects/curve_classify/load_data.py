@@ -3,7 +3,7 @@ import pandas as pd
 
 def load_data(
     data_file_path: str, drop_columns: list[str] | None = None
-) -> tuple[pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     curve = pd.read_table(
         f"{data_file_path}/secom_data.txt",
         sep=" ",

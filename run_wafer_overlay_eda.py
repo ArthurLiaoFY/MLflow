@@ -7,7 +7,7 @@ import pandas as pd
 import seaborn as sns
 
 from projects.wafer_overlay.load_data import load_data
-from projects.wafer_overlay.plot_fn import plot_boxplot, plot_scatter, plot_wafer
+from projects.wafer_overlay.plot_fns import plot_boxplot, plot_scatter, plot_wafer
 
 # %%
 
