@@ -9,6 +9,7 @@ from models.deep_models.training.evaluate import Accuracy, Precision, Recall
 from models.deep_models.training.loss import binary_cross_entropy_loss
 from models.deep_models.training.train_model import train_model
 from models.deep_models.utils.prepare_data import to_dataloader
+from projects.curve_classify.balance_data import up_sampling
 
 cudnn.benchmark = True
 
@@ -27,6 +28,12 @@ class CurveClassify:
             random_state=int(self.seed),
             stratify=label_array,
         )
+
+        dup_curve_array, dup_label_array = up_sampling(
+            curve_array=train_x,
+            label_array=train_y,
+            seed=int(self.seed),
+        )
         model = ConvolutionalGRUAttention(
             conv_in_channels=int(self.conv_in_channels),  # C in shape : (B, C, H)
             conv_out_channels=int(self.conv_out_channels),  # C' in shape : (B, C', H)
@@ -41,7 +48,10 @@ class CurveClassify:
             run_id=self.run_id,
             nn_model=model,
             train_dataloader=to_dataloader(
-                train_x, train_y, batch_size=int(self.batch_size), shuffle=True
+                dup_curve_array,
+                dup_label_array,
+                batch_size=int(self.batch_size),
+                shuffle=True,
             ),
             valid_dataloader=to_dataloader(
                 test_x, test_y, batch_size=int(self.batch_size), shuffle=False
