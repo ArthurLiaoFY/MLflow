@@ -88,9 +88,10 @@ def train_model(
 
             validation_loss /= len(valid_dataloader)
 
+        cost_time = datetime.now() - start
         log.write("-" * 80 + "\n")
         log.write(
-            f"Epoch: {epoch}, Use Time: {(datetime.now() - start).seconds} Second. \n"
+            f"Epoch: {epoch}, Use Time: {cost_time.seconds}.{cost_time.microseconds} Second. \n"
             + f"Train loss: {round(training_loss, 4)}; "
             + f"Valid loss: {round(validation_loss, 4)}; "
             + "; ".join(
