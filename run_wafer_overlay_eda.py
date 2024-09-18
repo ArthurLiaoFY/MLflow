@@ -99,7 +99,6 @@ plot_scatter(
     group_factor=["E9_EQUIP_ID", "E9_PM"],
     plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
-# %%
 plot_boxplot(
     df=df,
     x="A2_HR",
