@@ -59,5 +59,4 @@ with mlflow.start_run(
         label_array=label["test_result"].to_numpy(),
     )
 
-# TODO: test
-# FIXME: test
+# FIXME: training & validation loss de-generate to nan
