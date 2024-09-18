@@ -21,8 +21,7 @@ def up_sampling(
 
     n_samples_to_add = np.max(counts) - np.min(counts)
 
-    rng = np.random.default_rng(seed)
-    dup_indices = rng.choice(min_class_indices, size=n_samples_to_add, replace=True)
+    dup_indices = np.random.RandomState(seed).choice(min_class_indices, size=n_samples_to_add, replace=True)
 
     return (
         np.concatenate([curve_array, curve_array[dup_indices]], axis=0),
