@@ -137,8 +137,8 @@ def train_model(
     nn_model.load_state_dict(
         torch.load(early_stopping.best_model_state, weights_only=True),
     )
-    mlflow.log_artifact(
-        local_path=log_file_path,
-        run_id=run_id,
-    )
+    # mlflow.log_artifact(
+    #     local_path=log_file_path,
+    #     run_id=run_id,
+    # )
     return nn_model
