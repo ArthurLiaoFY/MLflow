@@ -54,7 +54,10 @@ class CurveClassify:
                 shuffle=True,
             ),
             valid_dataloader=to_dataloader(
-                test_x, test_y, batch_size=int(self.batch_size), shuffle=False
+                test_x,
+                test_y,
+                batch_size=int(self.batch_size),
+                shuffle=False,
             ),
             loss_fn=binary_cross_entropy_loss,
             evaluate_fns={
