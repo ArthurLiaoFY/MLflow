@@ -47,7 +47,7 @@ class EarlyStopping:
             elif self.val_loss_min <= val_loss < self.val_loss_min + self.delta:
                 self.losses.append(val_loss)
                 log.write(
-                    f"[Early Stopping] Validation loss {val_loss:.4f} between confidence interval \n"
+                    f"[Early Stopping] Validation loss {val_loss:.4f} between confidence interval: "
                     f"[{(self.val_loss_min + self.delta):.4f}, {(self.val_loss_min - self.delta if self.val_loss_min > self.delta else 0):.4f}]\n"
                 )
                 self.delta = np.std(self.losses[-20:])

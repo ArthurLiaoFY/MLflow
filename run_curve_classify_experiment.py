@@ -53,10 +53,11 @@ with mlflow.start_run(
         data_file_path=config["curve_classify"]["data_file_path"]
     )
 
-    cc = CurveClassify(run_id="", **config["model"])
+    cc = CurveClassify(run_id=run.info.run_id, **config["model"])
     cc.train_model(
         curve_array=cum_curve.to_numpy(),
         label_array=label["test_result"].to_numpy(),
     )
+
 # TODO: test
 # FIXME: test
