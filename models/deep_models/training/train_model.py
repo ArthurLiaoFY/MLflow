@@ -10,6 +10,7 @@ from models.deep_models.utils.prepare_data import get_device
 
 
 def train_model(
+    run_id: str,
     nn_model: torch.nn.Module,
     train_dataloader: DataLoader,
     valid_dataloader: DataLoader,
@@ -17,14 +18,17 @@ def train_model(
     evaluate_fns: Mapping[str, Accuracy | Recall | Precision | RSquare],
     optimizer: torch.optim.Optimizer,
     early_stopping: EarlyStopping,
+    plot_file_path: str,
     epochs: int = 100,
     seed: int | None = 1122,
 ) -> torch.nn.Module:
+
     device = get_device()
-    mlflow.log_text(
-        text=f"currently using device: {device}",
-        artifact_file="log_file.txt",
-    )
+    log_file_path = f"{plot_file_path}/{run_id}_log_file.txt"
+
+    with open(log_file_path, "w") as log:
+        log.write(f"currently using device: {device}\n")
+
     nn_model.to(device)
 
     if seed is not None:
@@ -45,12 +49,12 @@ def train_model(
                 dim=1
             )  # Make prediction by passing X to our model
             if train_y_pred.shape != train_y.shape:
-                mlflow.log_text(
-                    text=f"the shape of model prediction {tuple(train_y_pred.shape)} and y value {tuple(train_y.shape)}  is different ! "
-                    "this might influence the performance of the model",
-                    artifact_file="log_file.txt",
+                log.write(
+                    f"the shape of model prediction {tuple(train_y_pred.shape)} and y value {tuple(train_y.shape)}  is different ! "
+                    "this might influence the performance of the model\n"
                 )
-                # check train_y_pred shape and train_y shape
+
+            # check train_y_pred shape and train_y shape
             loss = loss_fn(train_y_pred, train_y.to(device))  # Calculate loss
             training_loss += loss.item()  # Add loss to running loss
 
@@ -81,6 +85,21 @@ def train_model(
                 validation_eval[fn_name] = evaluate_fn.finish().item()
 
             validation_loss /= len(valid_dataloader)
+
+        log.write("-" * 80 + "\n")
+        log.write(
+            f"Epoch: {epoch} \n"
+            + f"Train loss: {round(training_loss, 4)}; "
+            + f"Valid loss: {round(validation_loss, 4)}; "
+            + "; ".join(
+                [
+                    f"Valid {fn_name}: {round(evaluate_value, 4)}"
+                    for fn_name, evaluate_value in validation_eval.items()
+                ]
+            )
+            + "\n"
+        )
+
         mlflow.log_metric(key="training loss", value=f"{training_loss:4f}", step=epoch)
         mlflow.log_metric(
             key="validation loss", value=f"{validation_loss:4f}", step=epoch
@@ -92,15 +111,16 @@ def train_model(
 
         early_stopping(val_loss=validation_loss, model_state_dict=nn_model.state_dict())
         if early_stopping.early_stop:
-            mlflow.log_text(
-                text="*" * 4
+            log.write(
+                "*" * 4
                 + " Due to the early stopping mechanism, the training process is halted "
-                + "*" * 4,
-                artifact_file="log_file.txt",
+                + "*" * 4
+                + "\n"
             )
 
             break
     nn_model.load_state_dict(
         torch.load(early_stopping.best_model_state, weights_only=True),
     )
+    mlflow.log_artifact(log_file_path)
     return nn_model
