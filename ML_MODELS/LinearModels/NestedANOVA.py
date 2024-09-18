@@ -1,11 +1,6 @@
-import os
-
 import numpy as np
 import pandas as pd
-from scipy import stats
-
-os.chdir("D:/UserData/ArthurLiao/golden_path_phase2/")
-from LinearModel import LinearModel
+from LinearModel import LinearModel, f
 
 
 class Nested_ANOVA:
@@ -149,7 +144,7 @@ class Nested_ANOVA:
 
     def _get_ANOVA_summary_table(self):
         for Key in self.ANOVA_table.index:
-            self.ANOVA_table.loc[Key, "P-value"] = 1 - stats.f.cdf(
+            self.ANOVA_table.loc[Key, "P-value"] = 1 - f.cdf(
                 self.ANOVA_table.loc[Key, "F Stat"],
                 self.ANOVA_table.loc[Key, "df"],
                 self.ANOVA_table.loc["Residual", "df"],
