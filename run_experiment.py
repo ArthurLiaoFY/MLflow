@@ -66,12 +66,16 @@ with mlflow.start_run(
     with open("masked_uph_dict.pkl", "rb") as f:
         masked_uph_dict = pickle.load(f)
     print("data collected")
-    #######
-    sim_model = UphTrainSimulationModel(**kwargs)
-    sim_model.train_model(
-        masked_simulate_dict=masked_simulate_dict,
-        masked_uph_dict=masked_uph_dict,
-    )
+
+    ##############
+
+    # sim_model = UphTrainSimulationModel(**kwargs)
+    # sim_model.train_model(
+    # masked_simulate_dict=masked_simulate_dict,
+    # masked_uph_dict=masked_uph_dict,
+    # )
+    
+    ##############
 
     # Log parameters and metrics using the MLflow APIs
     mlflow.log_params(kwargs)
