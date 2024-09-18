@@ -40,8 +40,12 @@ class CurveClassify:
         tuned_model = train_model(
             run_id=self.run_id,
             nn_model=model,
-            train_dataloader=to_dataloader(train_x, train_y, shuffle=True),
-            valid_dataloader=to_dataloader(test_x, test_y, shuffle=False),
+            train_dataloader=to_dataloader(
+                train_x, train_y, batch_size=int(self.batch_size), shuffle=True
+            ),
+            valid_dataloader=to_dataloader(
+                test_x, test_y, batch_size=int(self.batch_size), shuffle=False
+            ),
             loss_fn=binary_cross_entropy_loss,
             evaluate_fns={
                 "Accuracy": Accuracy(),
@@ -52,7 +56,6 @@ class CurveClassify:
                 model.parameters(), lr=float(self.learning_rate)
             ),
             early_stopping=EarlyStopping(
-                log_file_path=self.log_file_path,
                 patience=int(self.early_stopping_patience),
             ),
             log_file_path=self.log_file_path,
