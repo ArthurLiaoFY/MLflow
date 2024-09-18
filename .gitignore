@@ -4,4 +4,4 @@ test*
 *.DS_Store
 __pycache__
 train_model_results
-*.ini
+ml_flow_config.ini
