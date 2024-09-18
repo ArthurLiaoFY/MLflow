@@ -2,8 +2,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from ml_projects.wafer_overlay.plot_fn import plot_wafer
-
 
 def load_data(data_file_path: str, drop_columns: list[str] | None = None):
     if not drop_columns:

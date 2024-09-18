@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from ml_projects.curve_classify.load_data import load_data
-from ml_projects.curve_classify.plot_fn import plot_curve
+from projects.curve_classify.load_data import load_data
+from projects.curve_classify.plot_fn import plot_curve
 
 # %%
 

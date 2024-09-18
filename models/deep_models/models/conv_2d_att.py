@@ -3,7 +3,7 @@ from math import floor
 import torch
 from torch.nn.utils import spectral_norm
 
-from ml_models.deep_models.utils.prepare_data import get_device
+from models.deep_models.utils.prepare_data import get_device
 
 
 class Convolutional2DAttention(torch.nn.Module):

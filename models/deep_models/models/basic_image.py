@@ -1,6 +1,6 @@
 import torch
 
-from ml_models.deep_models.utils.tools import get_device
+from models.deep_models.utils.tools import get_device
 
 
 class CNNLReluStack(torch.nn.Module):

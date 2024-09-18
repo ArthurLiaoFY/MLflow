@@ -4,9 +4,9 @@ import torch
 from torch.utils.data import DataLoader
 
 import mlflow
-from ml_models.deep_models.training.early_stopping import EarlyStopping
-from ml_models.deep_models.training.evaluate import Accuracy, Precision, Recall, RSquare
-from ml_models.deep_models.utils.prepare_data import get_device
+from models.deep_models.training.early_stopping import EarlyStopping
+from models.deep_models.training.evaluate import Accuracy, Precision, Recall, RSquare
+from models.deep_models.utils.prepare_data import get_device
 
 
 def train_model(

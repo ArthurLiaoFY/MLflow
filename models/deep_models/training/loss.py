@@ -1,6 +1,6 @@
 import torch
 
-from ml_models.deep_models.utils.tools import log_clamp
+from models.deep_models.utils.tools import log_clamp
 
 
 def cross_entropy_loss(
