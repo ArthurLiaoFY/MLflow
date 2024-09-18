@@ -25,6 +25,7 @@ class CurveClassify:
             test_size=float(self.validation_size),
             shuffle=True,
             random_state=int(self.seed),
+            stratify=label_array,
         )
         model = ConvolutionalGRUAttention(
             conv_in_channels=int(self.conv_in_channels),  # C in shape : (B, C, H)
