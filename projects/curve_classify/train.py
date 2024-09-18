@@ -51,7 +51,10 @@ class CurveClassify:
             optimizer=torch.optim.Adam(
                 model.parameters(), lr=float(self.learning_rate)
             ),
-            early_stopping=EarlyStopping(patience=int(self.early_stopping_patience)),
+            early_stopping=EarlyStopping(
+                log_file_path=self.log_file_path,
+                patience=int(self.early_stopping_patience),
+            ),
             log_file_path=self.log_file_path,
             epochs=int(self.epoch),
         )

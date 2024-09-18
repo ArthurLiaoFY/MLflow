@@ -9,12 +9,13 @@ import mlflow
 class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
 
-    def __init__(self, patience: int = 7):
+    def __init__(self, log_file_path: str, patience: int = 7):
         """
         Args:
             patience (int): How long to wait after last time validation loss improved.
                             Default: 7
         """
+        self.log = open(log_file_path, "w")
         self.patience = patience
         self.losses = []
         self.early_stop = False
@@ -41,28 +42,21 @@ class EarlyStopping:
                 )
                 if self.counter > 0:
                     self.counter = 0
-                    mlflow.log_text(
-                        text="[Early Stopping] Counter has been reset.",
-                        artifact_file="log_file.txt",
-                    )
+                    self.log.write("[Early Stopping] Counter has been reset. \n")
                 self.delta = np.std(self.losses[-20:])
 
             elif self.val_loss_min <= val_loss < self.val_loss_min + self.delta:
                 self.losses.append(val_loss)
-                mlflow.log_text(
-                    text=(
-                        f"[Early Stopping] Validation loss {val_loss:.4f} between confidence interval "
-                        f"[{(self.val_loss_min + self.delta):.4f}, {(self.val_loss_min - self.delta if self.val_loss_min > self.delta else 0):.4f}]"
-                    ),
-                    artifact_file="log_file.txt",
+                self.log.write(
+                    f"[Early Stopping] Validation loss {val_loss:.4f} between confidence interval \n"
+                    f"[{(self.val_loss_min + self.delta):.4f}, {(self.val_loss_min - self.delta if self.val_loss_min > self.delta else 0):.4f}]\n"
                 )
                 self.delta = np.std(self.losses[-20:])
 
             else:
                 self.counter += 1
-                mlflow.log_text(
-                    text=f"[Early Stopping] EarlyStopping counter: {self.counter} out of {self.patience}",
-                    artifact_file="log_file.txt",
+                self.log.write(
+                    f"[Early Stopping] EarlyStopping counter: {self.counter} out of {self.patience} \n",
                 )
                 if self.counter >= self.patience:
                     self.early_stop = True
@@ -71,9 +65,8 @@ class EarlyStopping:
         """
         Saves model when validation loss decrease.
         """
-        mlflow.log_text(
-            text=f"[Early Stopping] Validation loss decreased ({self.val_loss_min:.4f} --> {val_loss:.4f}).",
-            artifact_file="log_file.txt",
+        self.log.write(
+            f"[Early Stopping] Validation loss decreased ({self.val_loss_min:.4f} --> {val_loss:.4f}). \n",
         )
         self.best_model_state = io.BytesIO()
         torch.save(obj=model_state_dict, f=self.best_model_state)
