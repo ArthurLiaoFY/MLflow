@@ -23,7 +23,7 @@ class CurveClassify:
             curve_array[:, np.newaxis, :],
             np.array([[1.0, 0.0] if res == -1 else [0.0, 1.0] for res in label_array]),
             test_size=float(self.validation_size),
-            shuffle=False,
+            shuffle=True,
             random_state=int(self.seed),
             stratify=label_array,
         )
