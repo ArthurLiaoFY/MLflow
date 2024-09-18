@@ -12,7 +12,7 @@ from projects.wafer_overlay.plot_fn import plot_boxplot, plot_scatter, plot_wafe
 # %%
 
 config = ConfigParser()
-config.read("wafer_overlay.ini")
+config.read("projects/wafer_overlay/wafer_overlay.ini")
 # %%
 df = load_data(
     data_file_path=config["wafer_overlay"]["data_file_path"],

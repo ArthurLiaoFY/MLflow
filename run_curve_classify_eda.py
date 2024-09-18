@@ -11,7 +11,7 @@ from projects.curve_classify.plot_fn import plot_curve
 # %%
 
 config = ConfigParser()
-config.read("curve_classify.ini")
+config.read("projects/curve_classify/curve_classify.ini")
 # %%
 curve, cum_curve, label = load_data(
     data_file_path=config["curve_classify"]["data_file_path"]
