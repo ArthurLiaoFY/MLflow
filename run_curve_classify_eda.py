@@ -1,4 +1,6 @@
 # %%
+from configparser import ConfigParser
+
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -7,7 +9,13 @@ from ml_projects.curve_classify.load_data import load_data
 from ml_projects.curve_classify.plot_fn import plot_curve
 
 # %%
-curve, cum_curve, label = load_data('./data/curve_classify')
+
+config = ConfigParser()
+config.read("curve_classify.ini")
+# %%
+curve, cum_curve, label = load_data(
+    data_file_path=config["curve_classify"]["data_file_path"]
+)
 # %%
 np.unique(
     label["test_result"],
@@ -18,6 +26,7 @@ np.unique(
 plot_curve(
     curve=cum_curve,
     label=label,
+    plot_file_path=config["curve_classify"]["plot_file_path"],
 )
 
 # %%

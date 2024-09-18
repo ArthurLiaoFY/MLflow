@@ -4,7 +4,11 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 
-def plot_curve(curve: pd.DataFrame, label: pd.DataFrame) -> None:
+def plot_curve(
+    curve: pd.DataFrame,
+    label: pd.DataFrame,
+    plot_file_path: str = ".",
+) -> None:
     fig = make_subplots(
         rows=1,
         cols=2,
@@ -37,4 +41,4 @@ def plot_curve(curve: pd.DataFrame, label: pd.DataFrame) -> None:
         title="Production Curve",
     )
 
-    plotly.offline.plot(fig, filename="curve_plot.html")
+    plotly.offline.plot(fig, filename=f"{plot_file_path}/curve_compare_plot.html")

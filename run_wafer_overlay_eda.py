@@ -1,5 +1,7 @@
 # %%
 
+from configparser import ConfigParser
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -8,8 +10,12 @@ from ml_projects.wafer_overlay.load_data import load_data
 from ml_projects.wafer_overlay.plot_fn import plot_boxplot, plot_scatter, plot_wafer
 
 # %%
+
+config = ConfigParser()
+config.read("wafer_overlay.ini")
+# %%
 df = load_data(
-    data_file_path="./data/wafer_overlay",
+    data_file_path=config["wafer_overlay"]["data_file_path"],
     drop_columns=[
         "A1_Space.Bot.CD",
         "A1_Line.Bot.CD",
@@ -49,73 +55,86 @@ plot_scatter(
     x="A2_HR",
     y="A2_ESC",
     group_factor=["A2_EQUIP_ID", "A2_Chm"],
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
 plot_scatter(
     df=df,
     x="WaferStartTime",
     y="A2_ESC",
     group_factor=["A2_EQUIP_ID", "A2_Chm"],
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
 plot_scatter(
     df=df,
     x="WaferStartTime",
     y="A2_HR",
     group_factor=["A2_EQUIP_ID", "A2_Chm"],
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
 plot_scatter(
     df=df,
     x="WaferStartTime",
     y="B4_HR",
     group_factor=["B4_EQUIP_ID", "B4_Chm"],
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
 plot_scatter(
     df=df,
     x="WaferStartTime",
     y="A5_ESC",
     group_factor=["A5_EQUIP_ID", "A5_Chm"],
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
 plot_scatter(
     df=df,
     x="WaferStartTime",
     y="D7_HR",
     group_factor=["D7_EQUIP_ID", "D7_PM"],
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
 plot_scatter(
     df=df,
     x="WaferStartTime",
     y="E9_HR",
     group_factor=["E9_EQUIP_ID", "E9_PM"],
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
 # %%
 plot_boxplot(
     df=df,
     x="A2_HR",
     group_factor=["A2_EQUIP_ID", "A2_Chm"],
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
 plot_boxplot(
     df=df,
     x="A2_ESC",
     group_factor=["A2_EQUIP_ID", "A2_Chm"],
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
 plot_boxplot(
     df=df,
     x="B4_HR",
     group_factor=["B4_EQUIP_ID", "B4_Chm"],
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
 plot_boxplot(
     df=df,
     x="A5_ESC",
     group_factor=["A5_EQUIP_ID", "A5_Chm"],
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
 plot_boxplot(
     df=df,
     x="D7_HR",
     group_factor=["D7_EQUIP_ID", "D7_PM"],
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
 plot_boxplot(
     df=df,
     x="E9_HR",
     group_factor=["E9_EQUIP_ID", "E9_PM"],
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
 )
 # %%
 df.drop_duplicates(
@@ -181,7 +200,11 @@ df.drop_duplicates(subset=["wafer_id", "WaferStartTime"]).groupby("wafer_id")[
 ].count().sort_values()
 
 # %%
-plot_wafer(df=df, wafer_id="W_77")
+plot_wafer(
+    df=df,
+    wafer_id="W_77",
+    plot_file_path=config["wafer_overlay"]["plot_file_path"],
+)
 # %%
 df.loc[
     df["wafer_id"] == "W_77",

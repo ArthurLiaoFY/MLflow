@@ -5,3 +5,5 @@ test*
 __pycache__
 train_model_results
 ml_flow_config.ini
+*.html
+*.png

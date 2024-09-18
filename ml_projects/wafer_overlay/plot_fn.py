@@ -10,6 +10,7 @@ from plotly.subplots import make_subplots
 def plot_wafer(
     df: pd.DataFrame,
     wafer_id: str,
+    plot_file_path: str = ".",
 ):
     fig = plt.figure(figsize=(9, 7))
     plt.scatter(
@@ -33,7 +34,7 @@ def plot_wafer(
     plt.axis("off")
 
     plt.colorbar(label="overlay")
-    plt.show()
+    plt.savefig(f"{plot_file_path}/{wafer_id}_overlay.png")
 
 
 def plot_scatter(
@@ -41,6 +42,7 @@ def plot_scatter(
     x: str,
     y: str,
     group_factor: list[str],
+    plot_file_path: str = ".",
 ):
     color_map = px.colors.qualitative.Set1
     fig = go.Figure()
@@ -63,7 +65,8 @@ def plot_scatter(
     )
 
     plotly.offline.plot(
-        fig, filename=f"{x}_{y}_under_{', '.join(group_factor)}_scatterplot.html"
+        fig,
+        filename=f"{plot_file_path}/{x}_{y}_under_{', '.join(group_factor)}_scatterplot.html",
     )
 
 
@@ -71,6 +74,7 @@ def plot_boxplot(
     df: pd.DataFrame,
     x: str,
     group_factor: list[str],
+    plot_file_path: str = ".",
 ):
     fig = make_subplots(
         rows=1,
@@ -97,5 +101,6 @@ def plot_boxplot(
         template="plotly_white",
     )
     plotly.offline.plot(
-        fig, filename=f"{x}_under_{', '.join(group_factor)}_boxplot.html"
+        fig,
+        filename=f"{plot_file_path}/{x}_under_{', '.join(group_factor)}_boxplot.html",
     )
