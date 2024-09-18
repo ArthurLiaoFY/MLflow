@@ -102,13 +102,24 @@ def train_model(
             + "\n"
         )
 
-        mlflow.log_metric(key="training loss", value=f"{training_loss:4f}", step=epoch)
         mlflow.log_metric(
-            key="validation loss", value=f"{validation_loss:4f}", step=epoch
+            key="training loss",
+            value=f"{training_loss:4f}",
+            step=epoch,
+            run_id=run_id,
+        )
+        mlflow.log_metric(
+            key="validation loss",
+            value=f"{validation_loss:4f}",
+            step=epoch,
+            run_id=run_id,
         )
         for fn_name, evaluate_value in validation_eval.items():
             mlflow.log_metric(
-                key=f"validation {fn_name}", value=f"{evaluate_value:4f}", step=epoch
+                key=f"validation {fn_name}",
+                value=f"{evaluate_value:4f}",
+                step=epoch,
+                run_id=run_id,
             )
 
         early_stopping(val_loss=validation_loss, model_state_dict=nn_model.state_dict())
@@ -125,7 +136,7 @@ def train_model(
         torch.load(early_stopping.best_model_state, weights_only=True),
     )
     mlflow.log_artifact(
-        run_id=run_id,
         local_path=log_file_path,
+        run_id=run_id,
     )
     return nn_model
