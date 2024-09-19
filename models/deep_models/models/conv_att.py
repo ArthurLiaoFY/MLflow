@@ -1,6 +1,6 @@
 import torch
 
-from models.deep_models.utils.prepare_data import get_device
+# from models.deep_models.utils.prepare_data import get_device
 
 
 class ConvolutionalAttention(torch.nn.Module):
@@ -70,7 +70,6 @@ class ConvolutionalAttention(torch.nn.Module):
             embed_dim=out_channel_size * num_of_status,
             num_heads=out_channel_size,
             batch_first=True,
-            device=get_device(),
         )
         self.final_layer = torch.nn.Sequential(
             torch.nn.Linear(
@@ -98,6 +97,7 @@ class ConvolutionalAttention(torch.nn.Module):
             self.k_conv_layer(flatten_conv_result),
             self.v_conv_layer(flatten_conv_result),
         )
+        self.multihead_attention_block.to(eqp_status_block.device)
         attn_output, _ = self.multihead_attention_block(q, k, v)
         attn_output = torch.cat(
             tensors=(self.flatten(attn_output + flatten_conv_result), lagged_infos),

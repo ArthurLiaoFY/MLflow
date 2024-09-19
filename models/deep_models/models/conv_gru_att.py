@@ -1,6 +1,6 @@
 import torch
 
-from models.deep_models.utils.prepare_data import get_device
+# from models.deep_models.utils.prepare_data import get_device
 
 
 class ConvolutionalGRUAttention(torch.nn.Module):
@@ -15,7 +15,7 @@ class ConvolutionalGRUAttention(torch.nn.Module):
         out_feature_size: int = 2,
     ):
         super(ConvolutionalGRUAttention, self).__init__()
-        self.device = get_device()
+        # self.device = get_device()
         self.gru_hidden_size = gru_hidden_size
         self.gru_layer_amount = gru_layer_amount
         self.conv_1d_block = torch.nn.Sequential(
@@ -80,7 +80,6 @@ class ConvolutionalGRUAttention(torch.nn.Module):
             embed_dim=gru_hidden_size,
             num_heads=attention_num_of_head,
             batch_first=True,
-            device=self.device,
         )
         # multihead_attention_block in size : (batch size, conv_out_channels, gru_hidden_size)
         # multihead_attention_block out size : (batch size, conv_out_channels, gru_hidden_size)
@@ -105,13 +104,14 @@ class ConvolutionalGRUAttention(torch.nn.Module):
         conv_result = self.conv_1d_block(input_tensor)
         init_hidden_state = torch.zeros(
             size=(self.gru_layer_amount, batch_size, self.gru_hidden_size)
-        ).to(self.device)
+        ).to(input_tensor.device)
         gru_result, _ = self.gru_layer(conv_result, init_hidden_state)
         q, k, v = (
             self.q_conv_layer(gru_result),
             self.k_conv_layer(gru_result),
             self.v_conv_layer(gru_result),
         )
+        self.multihead_attention_block.to(input_tensor.device)
         attn_output, _ = self.multihead_attention_block(q, k, v)
         attn_output = self.flatten(attn_output + gru_result)
 

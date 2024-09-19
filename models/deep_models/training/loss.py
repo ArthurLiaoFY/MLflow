@@ -21,17 +21,37 @@ def cross_entropy_loss(
 
 
 def binary_cross_entropy_loss(
-    y_pred: torch.Tensor, y_true: torch.Tensor, reduction: str = "mean"
+    y_pred: torch.Tensor,
+    y_true: torch.Tensor,
+    reduction: str = "mean",
+    epsilon: float = 1e-12,
 ) -> torch.Tensor:
+    log_min = torch.Tensor([epsilon, epsilon]).to(y_pred.device)
     if reduction == "sum":
         return torch.sum(
-            -1 * y_true * log_clamp(x=y_pred, min_value=-10.0)
-            + -1 * (1 - y_true) * log_clamp(x=1 - y_pred, min_value=-10.0)
+            -1
+            * y_true
+            * torch.log(
+                torch.clamp(input=y_pred, min=log_min),
+            )
+            + -1
+            * (1 - y_true)
+            * torch.log(
+                torch.clamp(input=1.0 - y_pred, min=log_min),
+            )
         )
     else:
         return torch.mean(
-            -1 * y_true * log_clamp(x=y_pred, min_value=-10.0)
-            + -1 * (1 - y_true) * log_clamp(x=1 - y_pred, min_value=-10.0)
+            -1
+            * y_true
+            * torch.log(
+                torch.clamp(input=y_pred, min=log_min),
+            )
+            + -1
+            * (1 - y_true)
+            * torch.log(
+                torch.clamp(input=1.0 - y_pred, min=log_min),
+            )
         )
 
 
