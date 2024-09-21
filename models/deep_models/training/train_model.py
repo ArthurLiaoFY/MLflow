@@ -124,7 +124,9 @@ def train_model(
             )
 
         early_stopping(
-            log=log, val_loss=validation_loss, model_state_dict=nn_model.state_dict()
+            log=log,
+            val_loss=validation_loss,
+            model_state_dict=nn_model.state_dict(),
         )
         if early_stopping.early_stop:
             log.write(

@@ -29,14 +29,14 @@ class CurveClassify:
             stratify=label_array,
         )
 
-        dup_train_x, dup_train_y = up_sampling(
-            curve_array=train_x,
-            label_array=train_y,
-            seed=int(self.seed),
-        )
+        # train_x, train_y = up_sampling(
+        #     curve_array=train_x,
+        #     label_array=train_y,
+        #     seed=int(self.seed),
+        # )
 
-        dup_binary_train_y = np.array(
-            [[1.0, 0.0] if res == -1 else [0.0, 1.0] for res in dup_train_y]
+        binary_train_y = np.array(
+            [[1.0, 0.0] if res == -1 else [0.0, 1.0] for res in train_y]
         )
         binary_test_y = np.array(
             [[1.0, 0.0] if res == -1 else [0.0, 1.0] for res in test_y]
@@ -56,8 +56,8 @@ class CurveClassify:
             run_id=self.run_id,
             nn_model=model,
             train_dataloader=to_dataloader(
-                dup_train_x,
-                dup_binary_train_y,
+                train_x,
+                binary_train_y,
                 batch_size=int(self.batch_size),
                 shuffle=True,
             ),
