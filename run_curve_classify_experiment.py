@@ -49,7 +49,7 @@ with mlflow.start_run(
     ),
 ) as run:
 
-    _, cum_curve, label = load_data(
+    curve, cum_curve, label = load_data(
         data_file_path=config["curve_classify"]["data_file_path"]
     )
 
