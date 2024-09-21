@@ -53,8 +53,6 @@ with mlflow.start_run(
         data_file_path=config["curve_classify"]["data_file_path"]
     )
 
-    # TODO: curve SMOTE
-
     cc = CurveClassify(
         run_id=run.info.run_id,
         **config["model"],
@@ -63,5 +61,3 @@ with mlflow.start_run(
         curve_array=cum_curve.to_numpy(),
         label_array=label["test_result"].to_numpy(),
     )
-
-# FIXME: training & validation loss de-generate to nan
