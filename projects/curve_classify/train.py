@@ -9,7 +9,7 @@ from models.deep_models.training.evaluate import Accuracy, Precision, Recall
 from models.deep_models.training.loss import binary_cross_entropy_loss
 from models.deep_models.training.train_model import train_model
 from models.deep_models.utils.prepare_data import to_dataloader
-from projects.curve_classify.balance_data import up_sampling
+from projects.curve_classify.balance_data import smote, up_sampling
 
 cudnn.benchmark = True
 
@@ -22,18 +22,26 @@ class CurveClassify:
     def train_model(self, curve_array: np.ndarray, label_array: np.ndarray) -> None:
         train_x, test_x, train_y, test_y = train_test_split(
             curve_array[:, np.newaxis, :],
-            np.array([[1.0, 0.0] if res == -1 else [0.0, 1.0] for res in label_array]),
+            label_array,
             test_size=float(self.validation_size),
             shuffle=True,
             random_state=int(self.seed),
             stratify=label_array,
         )
 
-        dup_curve_array, dup_label_array = up_sampling(
+        dup_train_x, dup_train_y = up_sampling(
             curve_array=train_x,
             label_array=train_y,
             seed=int(self.seed),
         )
+
+        dup_binary_train_y = np.array(
+            [[1.0, 0.0] if res == -1 else [0.0, 1.0] for res in dup_train_y]
+        )
+        binary_test_y = np.array(
+            [[1.0, 0.0] if res == -1 else [0.0, 1.0] for res in test_y]
+        )
+
         model = ConvolutionalGRUAttention(
             conv_in_channels=int(self.conv_in_channels),  # C in shape : (B, C, H)
             conv_out_channels=int(self.conv_out_channels),  # C' in shape : (B, C', H)
@@ -48,14 +56,14 @@ class CurveClassify:
             run_id=self.run_id,
             nn_model=model,
             train_dataloader=to_dataloader(
-                dup_curve_array,
-                dup_label_array,
+                dup_train_x,
+                dup_binary_train_y,
                 batch_size=int(self.batch_size),
                 shuffle=True,
             ),
             valid_dataloader=to_dataloader(
                 test_x,
-                test_y,
+                binary_test_y,
                 batch_size=int(self.batch_size),
                 shuffle=False,
             ),
