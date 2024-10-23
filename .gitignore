@@ -8,4 +8,4 @@ mlflow_config.ini
 *.html
 *.png
 *.pt
-*.txt
+training_logs
