@@ -11,9 +11,9 @@ def release_memories() -> None:
 
 def get_device() -> torch.device:
     return torch.device(
-        "cuda:0"
+        "cuda"
         if torch.cuda.is_available()
-        else "mps" if torch.backends.mps.is_built() else "cpu"
+        else "mps" if torch.backends.mps.is_available() else "cpu"
     )
 
 
