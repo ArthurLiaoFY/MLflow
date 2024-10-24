@@ -3,12 +3,11 @@ import torch
 from models.deep_models.utils.prepare_data import get_device
 
 
+# regression
 class RSquare:
     def __init__(self):
         self.device = get_device()
-        self.RSE, self.SSE = torch.tensor([0.0]).to(self.device), torch.tensor(
-            [0.0]
-        ).to(self.device)
+        self.initialize()
 
     def update(self, y_pred: torch.Tensor, y_true: torch.Tensor):
         self.RSE += torch.pow((y_true - y_pred), 2).sum()
@@ -25,12 +24,11 @@ class RSquare:
         return result
 
 
+# classify
 class Accuracy:
     def __init__(self):
         self.device = get_device()
-        self.y_pred_idx, self.y_true_idx = torch.tensor([]).to(
-            self.device
-        ), torch.tensor([]).to(self.device)
+        self.initialize()
 
     def update(self, y_pred: torch.Tensor, y_true: torch.Tensor):
         self.y_pred_idx = torch.cat((self.y_pred_idx, torch.argmax(y_pred, dim=1)))
@@ -50,9 +48,7 @@ class Accuracy:
 class Recall:
     def __init__(self):
         self.device = get_device()
-        self.y_pred_idx, self.y_true_idx = torch.tensor([]).to(
-            self.device
-        ), torch.tensor([]).to(self.device)
+        self.initialize()
 
     def update(self, y_pred: torch.Tensor, y_true: torch.Tensor):
         self.y_pred_idx = torch.cat((self.y_pred_idx, torch.argmax(y_pred, dim=1)))
@@ -75,9 +71,7 @@ class Recall:
 class Precision:
     def __init__(self):
         self.device = get_device()
-        self.y_pred_idx, self.y_true_idx = torch.tensor([]).to(
-            self.device
-        ), torch.tensor([]).to(self.device)
+        self.initialize()
 
     def update(self, y_pred: torch.Tensor, y_true: torch.Tensor):
         self.y_pred_idx = torch.cat((self.y_pred_idx, torch.argmax(y_pred, dim=1)))
@@ -87,6 +81,29 @@ class Precision:
         self.y_pred_idx, self.y_true_idx = torch.tensor([]).to(
             self.device
         ), torch.tensor([]).to(self.device)
+
+    def finish(self) -> torch.Tensor:
+        precision = (
+            self.y_pred_idx[self.y_true_idx == 0]
+            == self.y_true_idx[self.y_true_idx == 0]
+        ).sum() / (self.y_pred_idx == 0).sum()
+        self.initialize()
+        return precision
+
+
+class ROC_AUC:
+    def __init__(self):
+        self.device = get_device()
+        self.initialize()
+
+    def update(self, y_pred: torch.Tensor, y_true: torch.Tensor):
+        self.y_pred_prob = y_pred[:, 1]
+        self.y_true_idx = y_true[:, 1]
+
+    def initialize(self):
+        self.y_pred, self.y_true_idx = torch.tensor([]).to(self.device), torch.tensor(
+            []
+        ).to(self.device)
 
     def finish(self) -> torch.Tensor:
         precision = (
