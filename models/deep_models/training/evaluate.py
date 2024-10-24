@@ -1,3 +1,4 @@
+# %%
 import torch
 
 from models.deep_models.utils.prepare_data import get_device
@@ -91,7 +92,7 @@ class Precision:
         return precision
 
 
-class ROC_AUC:
+class AreaUnderCurve:
     def __init__(self):
         self.device = get_device()
         self.initialize()
@@ -101,36 +102,33 @@ class ROC_AUC:
         self.y_true_idx = y_true[:, 1]
 
     def initialize(self):
-        self.y_pred, self.y_true_idx = torch.tensor([]).to(self.device), torch.tensor(
-            []
-        ).to(self.device)
+        self.y_pred_prob, self.y_true_idx = torch.tensor([]).to(
+            self.device
+        ), torch.tensor([]).to(self.device)
 
     def finish(self) -> torch.Tensor:
-        precision = (
-            self.y_pred_idx[self.y_true_idx == 0]
-            == self.y_true_idx[self.y_true_idx == 0]
-        ).sum() / (self.y_pred_idx == 0).sum()
+        sorted_indices = torch.argsort(self.y_pred_prob, descending=True)
+        sorted_true_idx = self.y_true_idx[sorted_indices]
+
+        tpr_list = []
+        fpr_list = []
+        pos_count = (self.y_true_idx == 1).sum().item()
+        neg_count = (self.y_true_idx == 0).sum().item()
+
+        tp, fp = 0, 0
+
+        for is_true in sorted_true_idx:
+            if is_true == 1:
+                tp += 1
+            else:
+                fp += 1
+
+            tpr_list.append(tp / pos_count)
+            fpr_list.append(fp / neg_count)
+
+        tpr = torch.tensor(tpr_list)
+        fpr = torch.tensor(fpr_list)
+        auc = torch.trapz(tpr, fpr).item()
+
         self.initialize()
-        return precision
-
-
-#
-#
-# # %%
-# from ML_MODELS.DeepModels.utils.prepare_data import one_hot_encoding
-#
-# model = torch.nn.Sequential(
-#     torch.nn.Linear(in_features=50, out_features=10),
-#     torch.nn.Softmax(),
-# )
-# x = torch.randn(100, 50)
-# target = one_hot_encoding(torch.argmax(torch.randn(100, 10), dim=1))
-# # %%
-# output = model(x)
-# # %%
-# output
-# # %%
-# acc = Accuracy()
-# acc.update(output, target)
-# print(acc.finish().item())
-# # %%
+        return auc
