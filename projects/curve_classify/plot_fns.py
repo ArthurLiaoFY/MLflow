@@ -8,6 +8,7 @@ def plot_curve(
     curve: pd.DataFrame,
     label: pd.DataFrame,
     plot_file_path: str = ".",
+    plot_name: str = "curve_compare_plot",
 ) -> None:
     fig = make_subplots(
         rows=1,
@@ -41,4 +42,4 @@ def plot_curve(
         title="Production Curve",
     )
 
-    plotly.offline.plot(fig, filename=f"{plot_file_path}/curve_compare_plot.html")
+    plotly.offline.plot(fig, filename=f"{plot_file_path}/{plot_name}.html")

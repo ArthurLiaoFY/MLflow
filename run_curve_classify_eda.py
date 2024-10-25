@@ -25,4 +25,14 @@ plot_curve(
     curve=cum_curve,
     label=label,
     plot_file_path=config["curve_classify"]["plot_file_path"],
+    plot_name="cum_curve_compare_plot",
 )
+
+# %%
+plot_curve(
+    curve=curve,
+    label=label,
+    plot_file_path=config["curve_classify"]["plot_file_path"],
+    plot_name="curve_compare_plot",
+)
+# %%
