@@ -128,7 +128,7 @@ class AreaUnderCurve:
 
         tpr = torch.tensor(tpr_list)
         fpr = torch.tensor(fpr_list)
-        auc = torch.trapz(tpr, fpr).item()
+        auc = torch.trapz(tpr, fpr)
 
         self.initialize()
         return auc

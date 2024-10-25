@@ -5,7 +5,12 @@ from sklearn.model_selection import train_test_split
 
 from models.deep_models.models.conv_gru_att import ConvolutionalGRUAttention
 from models.deep_models.training.early_stopping import EarlyStopping
-from models.deep_models.training.evaluate import Accuracy, Precision, Recall
+from models.deep_models.training.evaluate import (
+    Accuracy,
+    AreaUnderCurve,
+    Precision,
+    Recall,
+)
 from models.deep_models.training.loss import binary_cross_entropy_loss
 from models.deep_models.training.train_model import train_model
 from models.deep_models.utils.prepare_data import to_dataloader
@@ -72,6 +77,7 @@ class CurveClassify:
                 "Accuracy": Accuracy(),
                 "Precision": Precision(),
                 "Recall": Recall(),
+                "AUC": AreaUnderCurve(),
             },
             optimizer=torch.optim.Adam(
                 model.parameters(), lr=float(self.learning_rate)
