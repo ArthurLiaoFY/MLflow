@@ -3,6 +3,7 @@ from typing import Callable, Mapping
 
 import torch
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 import mlflow
 from models.deep_models.training.early_stopping import EarlyStopping
@@ -90,7 +91,7 @@ def train_model(
                 loss = loss_fn(valid_y_pred, valid_y.to(device))  # Calculate loss
                 validation_loss += loss.item()  # Add loss to running loss
                 for evaluate_fn in evaluate_fns.values():
-                    evaluate_fn.update(valid_y_pred, valid_y.to(device))
+                    evaluate_fn.update(y_pred=valid_y_pred, y_true=valid_y.to(device))
 
             for fn_name, evaluate_fn in evaluate_fns.items():
                 validation_eval[fn_name] = evaluate_fn.finish().item()
@@ -194,24 +195,21 @@ def finetune_llm_model(
         llm_model.train()
         training_loss = 0.0
 
-        for batch in train_dataloader:
+        for train_batch in tqdm(train_dataloader, desc='Training'):
             # Forward propagation
-            train_y = batch["labels"].to(device)
+            train_y = train_batch["labels"].to(device)
             train_y_pred = llm_model(
-                input_ids=batch["input_ids"].to(device),
-                attention_mask=batch["attention_mask"].to(device),
-                labels=batch["labels"].to(device),
-            ).squeeze(
-                dim=1
+                input_ids=train_batch["input_ids"].to(device),
+                attention_mask=train_batch["attention_mask"].to(device),
             )  # Make prediction by passing X to our model
-            if train_y_pred.shape != train_y.shape:
+            if train_y_pred.logits.shape != train_y.shape:
                 log.write(
-                    f"the shape of model prediction {tuple(train_y_pred.shape)} and y value {tuple(train_y.shape)}  is different ! "
+                    f"the shape of model prediction {tuple(train_y_pred.logits.shape)} and y value {tuple(train_y.shape)}  is different ! "
                     "this might influence the performance of the model\n"
                 )
 
             # check train_y_pred shape and train_y shape
-            loss = loss_fn(train_y_pred, train_y.to(device))  # Calculate loss
+            loss = loss_fn(train_y_pred.logits, train_y.to(device))  # Calculate loss
             training_loss += loss.item()  # Add loss to running loss
 
             # Backward propagation
@@ -228,14 +226,20 @@ def finetune_llm_model(
         validation_eval = {fn_name: 0.0 for fn_name in evaluate_fns.keys()}
 
         with torch.no_grad():
-            for valid_x, valid_y in valid_dataloader:
-                valid_y_pred = llm_model(valid_x.to(device)).squeeze(
-                    dim=1
+            for valid_batch in tqdm(valid_dataloader, desc="Validating"):
+                valid_y = valid_batch["labels"].to(device)
+                valid_y_pred = llm_model(
+                    input_ids=valid_batch["input_ids"].to(device),
+                    attention_mask=valid_batch["attention_mask"].to(device),
                 )  # Make prediction by passing X to our model
-                loss = loss_fn(valid_y_pred, valid_y.to(device))  # Calculate loss
+                loss = loss_fn(
+                    valid_y_pred.logits, valid_y.to(device)
+                )  # Calculate loss
                 validation_loss += loss.item()  # Add loss to running loss
                 for evaluate_fn in evaluate_fns.values():
-                    evaluate_fn.update(valid_y_pred, valid_y.to(device))
+                    evaluate_fn.update(
+                        y_pred=valid_y_pred.logits, y_true=valid_y.to(device)
+                    )
 
             for fn_name, evaluate_fn in evaluate_fns.items():
                 validation_eval[fn_name] = evaluate_fn.finish().item()
