@@ -11,7 +11,7 @@ from models.deep_models.training.evaluate import (
     Precision,
     Recall,
 )
-from models.deep_models.training.loss import binary_cross_entropy_loss
+from models.deep_models.training.loss import cross_entropy_loss
 from models.deep_models.training.train_model import train_model
 from models.deep_models.utils.prepare_data import to_dataloader
 from projects.curve_classify.balance_data import smote, up_sampling
@@ -72,7 +72,7 @@ class CurveClassify:
                 batch_size=int(self.batch_size),
                 shuffle=False,
             ),
-            loss_fn=binary_cross_entropy_loss,
+            loss_fn=cross_entropy_loss,
             evaluate_fns={
                 "Accuracy": Accuracy(),
                 "Precision": Precision(),
