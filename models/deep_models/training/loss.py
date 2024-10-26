@@ -1,81 +1,32 @@
 import torch
 
-from models.deep_models.utils.tools import log_clamp
-
 
 def cross_entropy_loss(
     y_pred: torch.Tensor,
     y_true: torch.Tensor,
+    reduction: str = "mean",
     weight: torch.Tensor | None = None,
-    reduction: str = "mean",
-) -> torch.Tensor:
-    weight = (
-        torch.ones_like(y_true) * weight / weight.sum()
-        if weight is not None
-        else torch.ones_like(y_true)
-    )
-    if reduction == "sum":
-        return torch.sum(-1 * weight * y_true * torch.nn.LogSoftmax(dim=1)(y_pred))
-    else:
-        return torch.mean(-1 * weight * y_true * torch.nn.LogSoftmax(dim=1)(y_pred))
-
-
-def binary_cross_entropy_loss(
-    y_pred: torch.Tensor,
-    y_true: torch.Tensor,
-    reduction: str = "mean",
     epsilon: float = 1e-12,
 ) -> torch.Tensor:
-    log_min = torch.Tensor([epsilon, epsilon]).to(y_pred.device)
-    if reduction == "sum":
-        return torch.sum(
-            -1
-            * y_true
-            * torch.log(
-                torch.clamp(input=y_pred, min=log_min),
-            )
-            + -1
-            * (1 - y_true)
-            * torch.log(
-                torch.clamp(input=1.0 - y_pred, min=log_min),
-            )
-        )
-    else:
-        return torch.mean(
-            -1
-            * y_true
-            * torch.log(
-                torch.clamp(input=y_pred, min=log_min),
-            )
-            + -1
-            * (1 - y_true)
-            * torch.log(
-                torch.clamp(input=1.0 - y_pred, min=log_min),
-            )
+    if y_pred.shape != y_true.shape:
+        y_true = torch.zeros_like(y_pred).scatter_(
+            dim=1,
+            index=y_true.unsqueeze(1),
+            value=1,
         )
 
-
-def binary_cross_entropy_logit_loss(
-    y_pred: torch.Tensor,
-    y_true: torch.Tensor,
-    weight: torch.Tensor | None = None,
-    reduction: str = "mean",
-) -> torch.Tensor:
     weight = (
-        torch.ones_like(y_true) * weight / weight.sum()
-        if weight is not None
-        else torch.ones_like(y_true)
+        torch.ones_like(y_true) * (weight / weight.sum() if weight is not None else 1.0)
+    ).to(y_pred.device)
+
+    y_pred = torch.clamp(y_pred, min=epsilon, max=1 - epsilon)
+    loss = (
+        -1
+        * weight
+        * (y_true * torch.log(y_pred) + (1 - y_true) * torch.log(1 - y_pred))
     )
-    if reduction == "sum":
-        return torch.sum(
-            -1 * weight * y_true * torch.nn.LogSoftmax(dim=1)(y_pred)
-            + -1 * (1 - weight) * (1 - y_true) * torch.nn.LogSoftmax(dim=1)(1 - y_pred)
-        )
-    else:
-        return torch.mean(
-            -1 * weight * y_true * torch.nn.LogSoftmax(dim=1)(y_pred)
-            + -1 * (1 - weight) * (1 - y_true) * torch.nn.LogSoftmax(dim=1)(1 - y_pred)
-        )
+
+    return loss.sum() if reduction == "sum" else loss.mean()
 
 
 def focal_loss(
