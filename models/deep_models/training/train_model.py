@@ -195,7 +195,7 @@ def finetune_llm_model(
         llm_model.train()
         training_loss = 0.0
 
-        for train_batch in tqdm(train_dataloader, desc='Training'):
+        for train_batch in tqdm(train_dataloader, desc="Training"):
             # Forward propagation
             train_y = train_batch["labels"].to(device)
             train_y_pred = llm_model(
