@@ -32,8 +32,11 @@ class Accuracy:
         self.initialize()
 
     def update(self, y_pred: torch.Tensor, y_true: torch.Tensor):
-        self.y_pred_idx = torch.cat((self.y_pred_idx, torch.argmax(y_pred, dim=1)))
-        self.y_true_idx = torch.cat((self.y_true_idx, torch.argmax(y_true, dim=1)))
+        self.y_pred_idx = torch.cat((self.y_pred_idx, torch.argmax(y_pred, dim=-1)))
+        if len(self.y_true_idx.shape) == 1:
+            self.y_true_idx = torch.cat((self.y_true_idx, y_true))
+        else:
+            self.y_true_idx = torch.cat((self.y_true_idx, torch.argmax(y_true, dim=-1)))
 
     def initialize(self):
         self.y_pred_idx, self.y_true_idx = torch.tensor([]).to(
@@ -52,8 +55,11 @@ class Recall:
         self.initialize()
 
     def update(self, y_pred: torch.Tensor, y_true: torch.Tensor):
-        self.y_pred_idx = torch.cat((self.y_pred_idx, torch.argmax(y_pred, dim=1)))
-        self.y_true_idx = torch.cat((self.y_true_idx, torch.argmax(y_true, dim=1)))
+        self.y_pred_idx = torch.cat((self.y_pred_idx, torch.argmax(y_pred, dim=-1)))
+        if len(self.y_true_idx.shape) == 1:
+            self.y_true_idx = torch.cat((self.y_true_idx, y_true))
+        else:
+            self.y_true_idx = torch.cat((self.y_true_idx, torch.argmax(y_true, dim=-1)))
 
     def initialize(self):
         self.y_pred_idx, self.y_true_idx = torch.tensor([]).to(
@@ -75,8 +81,11 @@ class Precision:
         self.initialize()
 
     def update(self, y_pred: torch.Tensor, y_true: torch.Tensor):
-        self.y_pred_idx = torch.cat((self.y_pred_idx, torch.argmax(y_pred, dim=1)))
-        self.y_true_idx = torch.cat((self.y_true_idx, torch.argmax(y_true, dim=1)))
+        self.y_pred_idx = torch.cat((self.y_pred_idx, torch.argmax(y_pred, dim=-1)))
+        if len(self.y_true_idx.shape) == 1:
+            self.y_true_idx = torch.cat((self.y_true_idx, y_true))
+        else:
+            self.y_true_idx = torch.cat((self.y_true_idx, torch.argmax(y_true, dim=-1)))
 
     def initialize(self):
         self.y_pred_idx, self.y_true_idx = torch.tensor([]).to(
@@ -98,8 +107,11 @@ class AreaUnderCurve:
         self.initialize()
 
     def update(self, y_pred: torch.Tensor, y_true: torch.Tensor):
-        self.y_pred_prob = y_pred[:, 1]
-        self.y_true_idx = y_true[:, 1]
+        self.y_pred_prob = torch.cat((self.y_pred_prob, y_pred[:, 1]))
+        if len(self.y_true_idx.shape) == 1:
+            self.y_true_idx = torch.cat((self.y_true_idx, y_true))
+        else:
+            self.y_true_idx = torch.cat((self.y_true_idx, y_true[:, 1]))
 
     def initialize(self):
         self.y_pred_prob, self.y_true_idx = torch.tensor([]).to(
@@ -112,8 +124,8 @@ class AreaUnderCurve:
 
         tpr_list = []
         fpr_list = []
-        pos_count = (self.y_true_idx == 1).sum().item()
-        neg_count = (self.y_true_idx == 0).sum().item()
+        pos_count = (sorted_true_idx == 1).sum().item()
+        neg_count = (sorted_true_idx == 0).sum().item()
 
         tp, fp = 0, 0
 
