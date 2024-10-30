@@ -9,3 +9,4 @@ mlflow_config.ini
 *.png
 *.pt
 training_logs
+mlruns
