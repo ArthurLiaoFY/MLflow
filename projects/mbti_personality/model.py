@@ -1,6 +1,6 @@
 # %%
 import torch
-from transformers import AutoModelForSeq2SeqLM
+from transformers import AutoModelForCausalLM
 
 
 class LanguageModel(torch.nn.Module):
@@ -8,7 +8,7 @@ class LanguageModel(torch.nn.Module):
         super(LanguageModel, self).__init__()
         self.checkpoint = checkpoint
 
-        self.base_model = AutoModelForSeq2SeqLM.from_pretrained(
+        self.base_model = AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=self.checkpoint,
             ignore_mismatched_sizes=True,
         )
