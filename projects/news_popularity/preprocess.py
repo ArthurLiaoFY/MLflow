@@ -11,8 +11,8 @@ tokenizer = AutoTokenizer.from_pretrained(config["model"].get("checkpoint"))
 
 def html_ingredients_extract(dataset):
     html_ingredients_list = []
-    for idx in range(len(dataset["Page content"])):
-        soup = BeautifulSoup(dataset["Page content"][idx], "html.parser")
+    for page_content in dataset["Page content"]:
+        soup = BeautifulSoup(page_content, "html.parser")
 
         title = (
             soup.find("h1", class_="title").get_text(strip=True)
