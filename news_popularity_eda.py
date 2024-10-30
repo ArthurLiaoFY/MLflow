@@ -43,6 +43,7 @@ train_dataset = train_dataset["train"].train_test_split(
 train_dataset = train_dataset.map(
     html_ingredients_extract,
     batched=True,
+    remove_columns=train_dataset["train"].column_names,
 )
 train_dataset.set_format("torch")
 # %%
