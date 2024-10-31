@@ -38,9 +38,8 @@ class Accuracy:
             self.y_true_idx = torch.cat((self.y_true_idx, torch.argmax(y_true, dim=-1)))
 
     def initialize(self):
-        self.y_pred_idx, self.y_true_idx = torch.tensor([]).to(
-            self.device
-        ), torch.tensor([]).to(self.device)
+        self.y_pred_idx = torch.tensor([]).to(self.device)
+        self.y_true_idx = torch.tensor([]).to(self.device)
 
     def finish(self) -> torch.Tensor:
         accuracy = (self.y_pred_idx == self.y_true_idx).to(torch.float).mean()
@@ -49,41 +48,67 @@ class Accuracy:
 
 
 class Recall:
-    def __init__(self):
+    def __init__(self, epsilon: float = 1e-10):
+        self.epsilon = epsilon
         self.device = get_device()
         self.initialize()
 
     def update(self, y_pred: torch.Tensor, y_true: torch.Tensor):
-        self.y_pred_idx = torch.cat((self.y_pred_idx, torch.argmax(y_pred, dim=-1)))
-        if len(self.y_true_idx.shape) == 1:
-            self.y_true_idx = torch.cat((self.y_true_idx, y_true))
+        self.y_pred_array = torch.cat(
+            (
+                self.y_pred_array,
+                torch.zeros_like(y_pred).scatter_(
+                    index=torch.argmax(y_pred, dim=-1), value=1.0, dim=-1
+                ),
+            )
+        )
+        if len(y_true.shape) == 1:
+            self.y_true_array = torch.cat(
+                (
+                    self.y_true_array,
+                    torch.zeros_like(y_pred).scatter_(index=y_true, value=1.0, dim=-1),
+                )
+            )
         else:
-            self.y_true_idx = torch.cat((self.y_true_idx, torch.argmax(y_true, dim=-1)))
+            self.y_true_array = torch.cat((self.y_true_array, y_true))
 
     def initialize(self):
-        self.y_pred_idx = torch.tensor([]).to(self.device)
-        self.y_true_idx = torch.tensor([]).to(self.device)
+        self.y_pred_array = torch.tensor([]).to(self.device)
+        self.y_true_array = torch.tensor([]).to(self.device)
 
     def finish(self) -> torch.Tensor:
         recall = (
-            self.y_pred_idx[self.y_true_idx == 0]
-            == self.y_true_idx[self.y_true_idx == 0]
-        ).sum() / (self.y_true_idx == 0).sum()
+            (self.y_pred_array * self.y_true_array).sum(dim=0)
+            / (self.y_true_array.sum(dim=0) + self.epsilon)
+        ).mean()  # Epsilon to avoid division by zero
         self.initialize()
         return recall
 
 
 class Precision:
-    def __init__(self):
+    def __init__(self, epsilon: float = 1e-10):
+        self.epsilon = epsilon
         self.device = get_device()
         self.initialize()
 
     def update(self, y_pred: torch.Tensor, y_true: torch.Tensor):
-        self.y_pred_idx = torch.cat((self.y_pred_idx, torch.argmax(y_pred, dim=-1)))
-        if len(self.y_true_idx.shape) == 1:
-            self.y_true_idx = torch.cat((self.y_true_idx, y_true))
+        self.y_pred_array = torch.cat(
+            (
+                self.y_pred_array,
+                torch.zeros_like(y_pred).scatter_(
+                    index=torch.argmax(y_pred, dim=-1), value=1.0, dim=-1
+                ),
+            )
+        )
+        if len(y_true.shape) == 1:
+            self.y_true_array = torch.cat(
+                (
+                    self.y_true_array,
+                    torch.zeros_like(y_pred).scatter_(index=y_true, value=1.0, dim=-1),
+                )
+            )
         else:
-            self.y_true_idx = torch.cat((self.y_true_idx, torch.argmax(y_true, dim=-1)))
+            self.y_true_array = torch.cat((self.y_true_array, y_true))
 
     def initialize(self):
         self.y_pred_idx = torch.tensor([]).to(self.device)
@@ -91,15 +116,16 @@ class Precision:
 
     def finish(self) -> torch.Tensor:
         precision = (
-            self.y_pred_idx[self.y_true_idx == 0]
-            == self.y_true_idx[self.y_true_idx == 0]
-        ).sum() / (self.y_pred_idx == 0).sum()
+            (self.y_pred_array * self.y_true_array).sum(dim=0)
+            / (self.y_pred_array.sum(dim=0) + self.epsilon)
+        ).mean()  # Epsilon to avoid division by zero
         self.initialize()
         return precision
 
 
 class AreaUnderCurve:
-    def __init__(self):
+    def __init__(self, epsilon: float = 1e-10):
+        self.epsilon = epsilon
         self.device = get_device()
         self.initialize()
 
