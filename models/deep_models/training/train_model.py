@@ -100,7 +100,7 @@ def train_model(
 
         cost_time = datetime.now() - start
         log.write("-" * 80 + "\n")
-        log.write(
+        validate_massage = (
             f"Epoch: {epoch}, Use Time: {cost_time.seconds}.{cost_time.microseconds} Second. \n"
             + f"Train loss: {round(training_loss, 4)}; "
             + f"Valid loss: {round(validation_loss, 4)}; "
@@ -112,6 +112,8 @@ def train_model(
             )
             + "\n"
         )
+        print(validate_massage)
+        log.write(validate_massage)
         if mlflow_tracking:
             mlflow.log_metric(
                 key="training loss",
@@ -248,7 +250,7 @@ def finetune_llm_model(
 
         cost_time = datetime.now() - start
         log.write("-" * 80 + "\n")
-        log.write(
+        validate_massage = (
             f"Epoch: {epoch}, Use Time: {cost_time.seconds}.{cost_time.microseconds} Second. \n"
             + f"Train loss: {round(training_loss, 4)}; "
             + f"Valid loss: {round(validation_loss, 4)}; "
@@ -260,6 +262,8 @@ def finetune_llm_model(
             )
             + "\n"
         )
+        print(validate_massage)
+        log.write(validate_massage)
         if mlflow_tracking:
             mlflow.log_metric(
                 key="training loss",
