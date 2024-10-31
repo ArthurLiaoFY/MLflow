@@ -1,13 +1,12 @@
 # %%
 from configparser import ConfigParser
 
-from datasets import Features, Value, load_dataset
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 from transformers import AutoTokenizer, get_scheduler
 
 from models.deep_models.utils.tools import get_device
+from projects.mbti_personality.load_data import load_data
 from projects.mbti_personality.model import LanguageModel
 
 # %%
@@ -20,26 +19,9 @@ model = LanguageModel(checkpoint=config["model"]["checkpoint"], num_labels=16).t
     device
 )
 # %%
-train_dataset = load_dataset(
-    path=config["path"]["data_file_path"],
-    data_files={
-        "train": "./mbti_1.csv",
-    },
-    features=Features(
-        {
-            "type": Value(dtype="string"),
-            "posts": Value(dtype="string"),
-        }
-    ),
-)
-
-train_dataset = train_dataset.rename_column("type", "labels")
-train_dataset = train_dataset.class_encode_column("labels")
-train_dataset = train_dataset["train"].train_test_split(
-    test_size=0.3,
-    stratify_by_column="labels",
-    seed=int(config["model"]["seed"]),
-)
+train_dataset = load_data(config=config)
+# %%
+train_dataset["train"][0]
 # %%
 train_dataset = train_dataset.map(
     lambda dataset: tokenizer(
