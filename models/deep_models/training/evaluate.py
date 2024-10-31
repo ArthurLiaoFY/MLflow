@@ -15,9 +15,8 @@ class RSquare:
         self.SSE += torch.pow((y_true - y_true.mean()), 2).sum()
 
     def initialize(self):
-        self.RSE, self.SSE = torch.tensor([0.0]).to(self.device), torch.tensor(
-            [0.0]
-        ).to(self.device)
+        self.RSE = torch.tensor([0.0]).to(self.device)
+        self.SSE = torch.tensor([0.0]).to(self.device)
 
     def finish(self) -> torch.Tensor:
         result = 1.0 - self.RSE / self.SSE
@@ -62,9 +61,8 @@ class Recall:
             self.y_true_idx = torch.cat((self.y_true_idx, torch.argmax(y_true, dim=-1)))
 
     def initialize(self):
-        self.y_pred_idx, self.y_true_idx = torch.tensor([]).to(
-            self.device
-        ), torch.tensor([]).to(self.device)
+        self.y_pred_idx = torch.tensor([]).to(self.device)
+        self.y_true_idx = torch.tensor([]).to(self.device)
 
     def finish(self) -> torch.Tensor:
         recall = (
@@ -88,9 +86,8 @@ class Precision:
             self.y_true_idx = torch.cat((self.y_true_idx, torch.argmax(y_true, dim=-1)))
 
     def initialize(self):
-        self.y_pred_idx, self.y_true_idx = torch.tensor([]).to(
-            self.device
-        ), torch.tensor([]).to(self.device)
+        self.y_pred_idx = torch.tensor([]).to(self.device)
+        self.y_true_idx = torch.tensor([]).to(self.device)
 
     def finish(self) -> torch.Tensor:
         precision = (
@@ -114,9 +111,8 @@ class AreaUnderCurve:
             self.y_true_idx = torch.cat((self.y_true_idx, y_true[:, 1]))
 
     def initialize(self):
-        self.y_pred_prob, self.y_true_idx = torch.tensor([]).to(
-            self.device
-        ), torch.tensor([]).to(self.device)
+        self.y_pred_prob = torch.tensor([]).to(self.device)
+        self.y_true_idx = torch.tensor([]).to(self.device)
 
     def finish(self) -> torch.Tensor:
         sorted_indices = torch.argsort(self.y_pred_prob, descending=True)
