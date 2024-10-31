@@ -58,7 +58,7 @@ class Recall:
             (
                 self.y_pred_array,
                 torch.zeros_like(y_pred).scatter_(
-                    index=torch.argmax(y_pred, dim=-1), value=1.0, dim=-1
+                    index=torch.argmax(y_pred, dim=-1, keepdim=True), value=1.0, dim=-1
                 ),
             )
         )
@@ -66,7 +66,9 @@ class Recall:
             self.y_true_array = torch.cat(
                 (
                     self.y_true_array,
-                    torch.zeros_like(y_pred).scatter_(index=y_true, value=1.0, dim=-1),
+                    torch.zeros_like(y_pred).scatter_(
+                        index=y_true[None, :], value=1.0, dim=-1
+                    ),
                 )
             )
         else:
@@ -96,7 +98,7 @@ class Precision:
             (
                 self.y_pred_array,
                 torch.zeros_like(y_pred).scatter_(
-                    index=torch.argmax(y_pred, dim=-1), value=1.0, dim=-1
+                    index=torch.argmax(y_pred, dim=-1, keepdim=True), value=1.0, dim=-1
                 ),
             )
         )
@@ -104,7 +106,9 @@ class Precision:
             self.y_true_array = torch.cat(
                 (
                     self.y_true_array,
-                    torch.zeros_like(y_pred).scatter_(index=y_true, value=1.0, dim=-1),
+                    torch.zeros_like(y_pred).scatter_(
+                        index=y_true[None, :], value=1.0, dim=-1
+                    ),
                 )
             )
         else:
