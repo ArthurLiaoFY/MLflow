@@ -111,8 +111,8 @@ class Precision:
             self.y_true_array = torch.cat((self.y_true_array, y_true))
 
     def initialize(self):
-        self.y_pred_idx = torch.tensor([]).to(self.device)
-        self.y_true_idx = torch.tensor([]).to(self.device)
+        self.y_pred_array = torch.tensor([]).to(self.device)
+        self.y_true_array = torch.tensor([]).to(self.device)
 
     def finish(self) -> torch.Tensor:
         precision = (
