@@ -97,7 +97,7 @@ finetune_llm_model(
     },
     optimizer=torch.optim.Adam(model.parameters(), lr=float(1e-3)),
     early_stopping=EarlyStopping(
-        patience=int(7),
+        patience=int(config["model"].get("patience")),
     ),
     log_file_path=config["path"].get("project_location"),
     mlflow_tracking=False,

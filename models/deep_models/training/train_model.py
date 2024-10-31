@@ -60,11 +60,6 @@ def train_model(
             train_y_pred = nn_model(train_x.to(device)).squeeze(
                 dim=1
             )  # Make prediction by passing X to our model
-            if train_y_pred.shape != train_y.shape:
-                log.write(
-                    f"the shape of model prediction {tuple(train_y_pred.shape)} and y value {tuple(train_y.shape)}  is different ! "
-                    "this might influence the performance of the model\n"
-                )
 
             # check train_y_pred shape and train_y shape
             loss = loss_fn(train_y_pred, train_y.to(device))  # Calculate loss
@@ -204,12 +199,6 @@ def finetune_llm_model(
                 input_ids=train_batch["input_ids"].to(device),
                 attention_mask=train_batch["attention_mask"].to(device),
             )  # Make prediction by passing X to our model
-            if train_y_pred.logits.shape != train_y.shape:
-                log.write(
-                    f"the shape of model prediction {tuple(train_y_pred.logits.shape)} and y value {tuple(train_y.shape)}  is different ! "
-                    "this might influence the performance of the model\n"
-                )
-
             # check train_y_pred shape and train_y shape
             loss = loss_fn(train_y_pred.logits, train_y.to(device))  # Calculate loss
             training_loss += loss.item()  # Add loss to running loss
