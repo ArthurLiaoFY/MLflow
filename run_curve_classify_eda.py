@@ -1,38 +1,28 @@
 # %%
 from configparser import ConfigParser
 
-import numpy as np
-
-from projects.curve_classify.load_data import load_data
-from projects.curve_classify.plot_fns import plot_curve
+from projects.curve_classify.finetune import TFCFinetune
+from projects.curve_classify.load_data import load_train_data
+from projects.curve_classify.pretrain import TFCPretrain
 
 # %%
 
 config = ConfigParser()
 config.read("projects/curve_classify/curve_classify.ini")
 # %%
-curve, cum_curve, label = load_data(
-    data_file_path=config["curve_classify"]["data_file_path"]
+train_x_t, train_x_f, train_y = load_train_data(
+    data_file_path=config["curve_classify"]["data_file_path"],
+    augmentation=False,
 )
 # %%
-np.unique(
-    label["test_result"],
-    return_counts=True,
-)
+
 
 # %%
-plot_curve(
-    curve=cum_curve,
-    label=label,
-    plot_file_path=config["curve_classify"]["plot_file_path"],
-    plot_name="cum_curve_compare_plot",
-)
-
+pt = TFCPretrain(run_id=None, **config["model"])
 # %%
-plot_curve(
-    curve=curve,
-    label=label,
-    plot_file_path=config["curve_classify"]["plot_file_path"],
-    plot_name="curve_compare_plot",
-)
+ft = TFCFinetune(run_id=None, **config["model"])
+# %%
+ft.model
+# %%
+pt.model
 # %%

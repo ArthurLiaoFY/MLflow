@@ -20,8 +20,7 @@ model = LanguageModel(checkpoint=config["model"]["checkpoint"], num_labels=16).t
 )
 # %%
 train_dataset = load_data(config=config)
-# %%
-train_dataset["train"][0]
+
 # %%
 train_dataset = train_dataset.map(
     lambda dataset: tokenizer(
@@ -73,8 +72,8 @@ finetune_llm_model(
     loss_fn=cross_entropy_loss,
     evaluate_fns={
         "Accuracy": Accuracy(),
-        # "Precision": Precision(),
-        # "Recall": Recall(),
+        "Precision": Precision(),
+        "Recall": Recall(),
         # "AUC": AreaUnderCurve(),
     },
     optimizer=torch.optim.Adam(model.parameters(), lr=float(1e-3)),
