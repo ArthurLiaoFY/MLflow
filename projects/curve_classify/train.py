@@ -25,6 +25,8 @@ class CurveClassify:
         self.__dict__.update(kwargs)
 
     def train_model(self, curve_array: np.ndarray, label_array: np.ndarray) -> None:
+        label_array = np.where(label_array == -1, 0, 1)
+
         train_x, test_x, train_y, test_y = train_test_split(
             curve_array[:, np.newaxis, :],
             label_array,
@@ -39,13 +41,6 @@ class CurveClassify:
         #     label_array=train_y,
         #     seed=int(self.seed),
         # )
-
-        binary_train_y = np.array(
-            [[1.0, 0.0] if res == -1 else [0.0, 1.0] for res in train_y]
-        )
-        binary_test_y = np.array(
-            [[1.0, 0.0] if res == -1 else [0.0, 1.0] for res in test_y]
-        )
 
         model = ConvolutionalGRUAttention(
             conv_in_channels=int(self.conv_in_channels),  # C in shape : (B, C, H)
@@ -62,13 +57,13 @@ class CurveClassify:
             nn_model=model,
             train_dataloader=to_dataloader(
                 train_x,
-                binary_train_y,
+                train_y,
                 batch_size=int(self.batch_size),
                 shuffle=True,
             ),
             valid_dataloader=to_dataloader(
                 test_x,
-                binary_test_y,
+                test_y,
                 batch_size=int(self.batch_size),
                 shuffle=False,
             ),
@@ -77,7 +72,7 @@ class CurveClassify:
                 "Accuracy": Accuracy(),
                 "Precision": Precision(),
                 "Recall": Recall(),
-                "AUC": AreaUnderCurve(),
+                # "AUC": AreaUnderCurve(),
             },
             optimizer=torch.optim.Adam(
                 model.parameters(), lr=float(self.learning_rate)
