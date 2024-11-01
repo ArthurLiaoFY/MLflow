@@ -1,19 +1,16 @@
-import pandas as pd
+import numpy as np
+from aeon.datasets import load_from_tsfile
 
 
-def load_data(data_file_path: str) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    curve = pd.read_table(
-        f"{data_file_path}/secom_data.txt",
-        sep=" ",
-        header=None,
+def load_data(
+    data_file_path: str,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    train_x, train_y = load_from_tsfile(f"{data_file_path}/FaultDetectionA_TRAIN.ts")
+    test_x, test_y = load_from_tsfile(f"{data_file_path}/FaultDetectionA_TEST.ts")
+
+    return (
+        train_x,
+        train_y.astype(int),
+        test_x,
+        test_y.astype(int),
     )
-    curve.fillna(0, inplace=True)
-    cum_curve = curve.cumsum(axis=1, skipna=True)
-    label = pd.read_table(
-        f"{data_file_path}/secom_labels.txt",
-        sep=" ",
-        header=None,
-    )
-    label.columns = ["test_result", "test_time"]
-
-    return curve, cum_curve, label

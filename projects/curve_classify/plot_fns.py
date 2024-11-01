@@ -1,45 +1,45 @@
-import pandas as pd
+import numpy as np
 import plotly
+import plotly.express
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 
 def plot_curve(
-    curve: pd.DataFrame,
-    label: pd.DataFrame,
+    curve: np.ndarray,
+    label: np.ndarray,
+    color_plate: dict,
     plot_file_path: str = ".",
     plot_name: str = "curve_compare_plot",
 ) -> None:
     fig = make_subplots(
         rows=1,
-        cols=2,
-        shared_yaxes=True,
-        subplot_titles=(
-            "Negative Results",
-            "Positive Results",
-        ),
+        cols=1,
+        shared_xaxes=True,
+        shared_yaxes=False,
     )
+    seen_label = set()
 
-    for i, tr in enumerate(label["test_result"]):
+    for i, tr in enumerate(label):
         fig.add_trace(
             go.Scatter(
-                x=curve.columns,
-                y=curve.loc[i, :],
+                x=list(range(curve.shape[2])),
+                y=curve[i, 0, :],
                 mode="lines",
                 name="",
-                line=dict(color="red" if tr == -1 else "blue"),
-                legendgroup="Negative" if tr == -1 else "Positive",
-                legendgrouptitle={
-                    "text": "Negative" if tr == -1 else "Positive",
-                },
-                showlegend=False,
+                line=dict(color=color_plate.get(tr)),
+                legendgroup=f"label {tr}",
+                legendgrouptitle={"text": f"label {tr}"},
+                showlegend=tr not in seen_label,
             ),
             row=1,
-            col=1 if tr == -1 else 2,
+            col=1,
         )
+        seen_label |= set([tr])
 
     fig.update_layout(
-        title="Production Curve",
+        title="ECG Curve",
+        title_x=0.5,
     )
 
     plotly.offline.plot(fig, filename=f"{plot_file_path}/{plot_name}.html")
