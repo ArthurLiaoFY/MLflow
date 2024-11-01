@@ -10,9 +10,9 @@ def cross_entropy_loss(
 ) -> torch.Tensor:
     if y_pred.shape != y_true.shape:
         y_true = torch.zeros_like(y_pred).scatter_(
-            dim=1,
-            index=y_true.unsqueeze(1),
-            value=1,
+            index=y_true.long()[None, :],
+            value=1.0,
+            dim=-1,
         )
 
     weight = (

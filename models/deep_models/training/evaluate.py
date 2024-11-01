@@ -67,7 +67,7 @@ class Recall:
                 (
                     self.y_true_array,
                     torch.zeros_like(y_pred).scatter_(
-                        index=y_true[None, :], value=1.0, dim=-1
+                        index=y_true.long()[None, :], value=1.0, dim=-1
                     ),
                 )
             )
@@ -107,7 +107,7 @@ class Precision:
                 (
                     self.y_true_array,
                     torch.zeros_like(y_pred).scatter_(
-                        index=y_true[None, :], value=1.0, dim=-1
+                        index=y_true.long()[None, :], value=1.0, dim=-1
                     ),
                 )
             )
