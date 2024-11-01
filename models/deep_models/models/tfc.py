@@ -12,7 +12,11 @@ class TimeFrequencyConsistency(torch.nn.Module):
             nhead=2,
             dim_feedforward=2 * 5120,
         )
-        self.transformer_encoder_t = TransformerEncoder(encoder_layers_t, 2)
+        self.transformer_encoder_t = TransformerEncoder(
+            encoder_layer=encoder_layers_t,
+            num_layers=2,
+            enable_nested_tensor=False,
+        )
 
         self.projector_t = torch.nn.Sequential(
             torch.nn.Linear(5120, 256),
@@ -27,7 +31,11 @@ class TimeFrequencyConsistency(torch.nn.Module):
             nhead=2,
             dim_feedforward=2 * 5120,
         )
-        self.transformer_encoder_f = TransformerEncoder(encoder_layers_f, 2)
+        self.transformer_encoder_f = TransformerEncoder(
+            encoder_layer=encoder_layers_f,
+            num_layers=2,
+            enable_nested_tensor=False,
+        )
 
         self.projector_f = torch.nn.Sequential(
             torch.nn.Linear(5120, 256),

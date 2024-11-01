@@ -35,7 +35,7 @@ class TFCPretrain:
                 float(self.beta1),
                 float(self.beta2),
             ),
-            weight_decay=self.weight_decay,
+            weight_decay=float(self.weight_decay),
         )
         self.early_stopping = EarlyStopping(
             patience=int(self.early_stopping_patience),

@@ -28,7 +28,7 @@ class TFCFinetune:
         self.loss_traj = []
 
         self.model = target_classifier(
-            num_classes_target=self.num_classes_target,
+            num_classes_target=int(self.num_classes_target),
         ).to(device=self.device)
 
         self.optimizer = torch.optim.Adam(
@@ -38,7 +38,7 @@ class TFCFinetune:
                 float(self.beta1),
                 float(self.beta2),
             ),
-            weight_decay=self.weight_decay,
+            weight_decay=float(self.weight_decay),
         )
         self.early_stopping = EarlyStopping(
             patience=int(self.early_stopping_patience),
