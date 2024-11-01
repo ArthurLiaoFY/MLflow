@@ -57,10 +57,10 @@ class TimeFrequencyConsistency(torch.nn.Module):
 
 
 class target_classifier(torch.nn.Module):
-    def __init__(self, configs) -> None:
+    def __init__(self, num_classes_target: int) -> None:
         super(target_classifier, self).__init__()
         self.logits = torch.nn.Linear(2 * 128, 64)
-        self.logits_simple = torch.nn.Linear(64, configs.num_classes_target)
+        self.logits_simple = torch.nn.Linear(64, num_classes_target)
 
     def forward(self, emb: torch.Tensor) -> torch.Tensor:
         emb_flat = emb.reshape(emb.shape[0], -1)
