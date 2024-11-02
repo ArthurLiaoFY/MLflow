@@ -10,3 +10,4 @@ mlflow_config.ini
 *.pt
 training_logs
 mlruns
+*.ts
