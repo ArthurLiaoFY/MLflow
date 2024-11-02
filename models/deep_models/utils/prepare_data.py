@@ -6,7 +6,7 @@ import torch
 from torch.nn.functional import one_hot
 from torch.utils.data import DataLoader, Dataset, Sampler, TensorDataset
 
-from models.deep_models.utils.tools import get_device
+from models.deep_models.utils.check_device import get_device
 
 
 def to_tensor(

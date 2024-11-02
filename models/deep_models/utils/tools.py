@@ -9,22 +9,6 @@ def release_memories() -> None:
     return None
 
 
-def get_device() -> torch.device:
-    return torch.device(
-        "cuda"
-        if torch.cuda.is_available()
-        else "mps" if torch.backends.mps.is_available() else "cpu"
-    )
-
-
-def check_model_device(model: torch.nn.Module) -> torch.device:
-    return torch.device(next(model.parameters()).device)
-
-
-def check_tensor_device(x: torch.Tensor) -> torch.device:
-    return x.device
-
-
 def log_clamp(x: torch.Tensor, min_value: float = -100.0) -> torch.Tensor:
     return torch.clamp(torch.log(x), min=min_value)
 

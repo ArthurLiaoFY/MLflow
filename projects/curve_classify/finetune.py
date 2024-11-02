@@ -15,7 +15,7 @@ from models.deep_models.training.evaluate import (
 from models.deep_models.training.loss import cross_entropy_loss
 from models.deep_models.training.train_model import train_model
 from models.deep_models.utils.prepare_data import to_dataloader
-from models.deep_models.utils.tools import get_device
+from models.deep_models.utils.check_device import get_device
 
 cudnn.benchmark = True
 
