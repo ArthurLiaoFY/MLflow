@@ -51,7 +51,7 @@ def to_dataloader(
         to_dataset(*data),
         batch_size=batch_size,
         shuffle=shuffle if sampler is None else False,
-        drop_last=True,
+        drop_last=False,
     )
 
 

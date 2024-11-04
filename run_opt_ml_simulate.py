@@ -21,7 +21,7 @@ X_train, X_val, y_train, y_val = sd.get_data(
     train_size_ratio=float(config.get("train_size_ratio"))
 )
 # %%
-sm = EstimateSurface(run_id="123", **config)
+sm = EstimateSurface(run_id="simulate", **config)
 sm.fit_surface(X=X_train, y=y_train)
 # %%
 y_hat = sm.pred_surface(valid_X=X_val)

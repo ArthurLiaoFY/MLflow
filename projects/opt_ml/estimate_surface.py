@@ -14,7 +14,9 @@ class EstimateSurface:
     def __init__(self, run_id, **kwargs) -> None:
         self.run_id = run_id
         self.__dict__.update(kwargs)
-        self.model = LinearLReluStack(in_features=2, out_features=1)
+        self.model = LinearLReluStack(
+            in_features=int(self.in_feature), out_features=int(self.out_feature)
+        )
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
             lr=float(self.lr),
