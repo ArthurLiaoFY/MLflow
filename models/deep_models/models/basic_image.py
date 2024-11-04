@@ -3,7 +3,7 @@ import torch
 # from models.deep_models.utils.tools import get_device
 
 
-class CNNLReluStack(torch.nn.Module):
+class CNNReluStack(torch.nn.Module):
     def __init__(self, in_features: tuple = (32, 1, 28, 28), out_features: int = 10):
         super().__init__()
         # self.device = get_device()
