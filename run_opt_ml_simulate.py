@@ -22,13 +22,13 @@ X_train, X_val, y_train, y_val = sd.get_data(
 )
 # %%
 sm = EstimateSurface(run_id="123", **config)
-sm.fit_model(X=X_train, y=y_train)
+sm.fit_surface(X=X_train, y=y_train)
 # %%
-y_hat = sm.pred_model(valid_X=X_val)
+y_hat = sm.pred_surface(valid_X=X_val)
 
 
 opt, a, b = optimize_f_hat(
-    obj_func=sm.pred_model,
+    obj_func=sm.pred_surface,
     constraint_ueq=sd.constraint_ueq,
     max_iter=int(config.get("max_iter")),
     size_pop=int(config.get("size_pop")),
@@ -39,7 +39,7 @@ opt, a, b = optimize_f_hat(
 # %%
 plot_obj_surface(
     pso_opt=opt,
-    func=sm.pred_model,
+    func=sm.pred_surface,
     max_iter=int(config.get("max_iter")),
     x_max=sd.x_max,
     x_min=sd.x_min,

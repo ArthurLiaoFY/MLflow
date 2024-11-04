@@ -20,7 +20,7 @@ class EstimateSurface:
             lr=float(self.lr),
         )
 
-    def fit_model(self, X: np.ndarray, y: np.ndarray) -> None:
+    def fit_surface(self, X: np.ndarray, y: np.ndarray) -> None:
 
         train_x, test_x, train_y, test_y = train_test_split(
             X,
@@ -58,5 +58,5 @@ class EstimateSurface:
             mlflow_tracking=False,
         )
 
-    def pred_model(self, valid_X: np.ndarray) -> np.ndarray:
+    def pred_surface(self, valid_X: np.ndarray) -> np.ndarray:
         return self.model(to_tensor(valid_X)).detach().cpu().numpy()
