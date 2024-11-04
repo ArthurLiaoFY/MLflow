@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from xgboost import XGBRegressor
 
+from projects.opt_ml.estimate_surface import EstimateSurface
 from projects.opt_ml.optimize_response import optimize_f_hat
 from projects.opt_ml.plot_fns import plot_obj_surface
 
@@ -28,45 +29,45 @@ x_max = [
     train_df["2ndFlrSF"].quantile(float(config.get("upper_quantile"))),
 ]
 # %%
-plt.plot(train_df["1stFlrSF"], train_df["2ndFlrSF"], "o")
-plt.vlines(
-    x=train_df["1stFlrSF"].quantile(float(config.get("lower_quantile"))),
-    ymin=x_min[1],
-    ymax=x_max[1],
-    colors="red",
-    linestyles="--",
-)
-plt.vlines(
-    x=train_df["1stFlrSF"].quantile(float(config.get("upper_quantile"))),
-    ymin=x_min[1],
-    ymax=x_max[1],
-    colors="red",
-    linestyles="--",
-)
+# plt.plot(train_df["1stFlrSF"], train_df["2ndFlrSF"], "o")
+# plt.vlines(
+#     x=train_df["1stFlrSF"].quantile(float(config.get("lower_quantile"))),
+#     ymin=x_min[1],
+#     ymax=x_max[1],
+#     colors="red",
+#     linestyles="--",
+# )
+# plt.vlines(
+#     x=train_df["1stFlrSF"].quantile(float(config.get("upper_quantile"))),
+#     ymin=x_min[1],
+#     ymax=x_max[1],
+#     colors="red",
+#     linestyles="--",
+# )
 
-plt.hlines(
-    y=train_df["2ndFlrSF"].quantile(float(config.get("lower_quantile"))),
-    xmin=x_min[0],
-    xmax=x_max[0],
-    colors="red",
-    linestyles="--",
-)
-plt.hlines(
-    y=train_df["2ndFlrSF"].quantile(float(config.get("upper_quantile"))),
-    xmin=x_min[0],
-    xmax=x_max[0],
-    colors="red",
-    linestyles="--",
-)
-plt.show()
+# plt.hlines(
+#     y=train_df["2ndFlrSF"].quantile(float(config.get("lower_quantile"))),
+#     xmin=x_min[0],
+#     xmax=x_max[0],
+#     colors="red",
+#     linestyles="--",
+# )
+# plt.hlines(
+#     y=train_df["2ndFlrSF"].quantile(float(config.get("upper_quantile"))),
+#     xmin=x_min[0],
+#     xmax=x_max[0],
+#     colors="red",
+#     linestyles="--",
+# )
+# plt.show()
 
 # %%
-xgb = XGBRegressor(random_state=int(config.get("seed")))
-xgb.fit(train_df[["1stFlrSF", "2ndFlrSF"]], train_df["SalePrice"])
 
+sm = EstimateSurface(run_id="boston_housing", **config)
+sm.fit_surface(X=train_df[["1stFlrSF", "2ndFlrSF"]], y=train_df["SalePrice"])
 # %%
 opt, a, b = optimize_f_hat(
-    obj_func=xgb.predict,
+    obj_func=sm.pred_surface,
     constraint_ueq=[
         lambda x: 2000 - x[0] - x[1],
     ],
@@ -77,12 +78,12 @@ opt, a, b = optimize_f_hat(
     opt_type=config.get("opt_type"),
 )
 # %%
-print(opt.best_x)
-print(opt.best_y)
+# print(opt.best_x)
+# print(opt.best_y)
 # %%
 plot_obj_surface(
     pso_opt=opt,
-    func=xgb.predict,
+    func=sm.pred_surface,
     max_iter=int(config.get("max_iter")),
     x_max=x_max,
     x_min=x_min,
