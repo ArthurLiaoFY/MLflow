@@ -3,9 +3,9 @@ from configparser import ConfigParser
 from datetime import datetime
 
 import mlflow
-from models.deep_models.utils.tools import get_device
+from models.deep_models.utils.check_device import get_device
 from projects.curve_classify.load_data import load_data
-from projects.curve_classify.train import CurveClassify
+from projects.curve_classify.pretrain import CurveClassify
 from setup_mlflow import setup_experiment, setup_mlflow
 
 device = get_device()
