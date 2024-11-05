@@ -72,7 +72,6 @@ tmp = pd.concat(
         ),
         raw_df.get("土地移轉總面積平方公尺"),
         pd.get_dummies(raw_df.get("建物型態").fillna("其他")).add_prefix("建物型態_"),
-        pd.get_dummies(raw_df.get("主要用途").fillna("其他")).add_prefix("主要用途_"),
         raw_df.get("建物移轉總面積平方公尺"),
         raw_df.get("建物現況格局-房"),
         raw_df.get("建物現況格局-廳"),
@@ -94,6 +93,7 @@ tmp = pd.concat(
 )
 
 # %%
+tmp.columns
 
 # %%
 
