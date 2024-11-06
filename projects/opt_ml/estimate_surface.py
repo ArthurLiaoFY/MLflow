@@ -59,6 +59,7 @@ class EstimateSurface:
             epochs=int(self.epoch),
             mlflow_tracking=False,
         )
+        torch.save(self.model, f"{self.model_file_path}/{self.run_id}_model.pt")
 
     def pred_surface(self, valid_X: np.ndarray) -> np.ndarray:
         return self.model(to_tensor(valid_X)).detach().cpu().numpy()
