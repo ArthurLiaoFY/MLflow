@@ -17,35 +17,53 @@ config = config["taichung_housing"]
 
 # load data
 presale_data_list = []
+presale_year_list = []
+
 secondhand_data_list = []
+secondhand_year_list = []
+
 for path, root, files in os.walk("./data/taichung_housing"):
     for f in files:
         if f.endswith("lvr_land_A.csv"):
+            secondhand_year_list.append(path.split("/")[-1][:3])
             secondhand_data_list.append(os.path.join(path, f))
+
         if f.endswith("lvr_land_B.csv"):
+            presale_year_list.append(path.split("/")[-1][:3])
             presale_data_list.append(os.path.join(path, f))
 
-
-presale_df = pd.concat(
-    objs=(pd.read_csv(f, header=[0, 1]) for f in presale_data_list),
-    axis=0,
-    ignore_index=True,
+# %%
+presale_df = (
+    pd.concat(
+        objs=(pd.read_csv(f, header=[0]).iloc[1:, :] for f in presale_data_list),
+        axis=0,
+        keys=presale_year_list,
+    )
+    .reset_index(level=[0])
+    .rename(columns={"level_0": "記錄年份"})
 )
-presale_df[("預售中古", "_")] = 1
+presale_df["建築完成年月"] = np.nan
+presale_df["預售中古"] = 1
 
-secondhand_df = pd.concat(
-    objs=(pd.read_csv(f, header=[0, 1]) for f in secondhand_data_list),
-    axis=0,
-    ignore_index=True,
+secondhand_df = (
+    pd.concat(
+        objs=(pd.read_csv(f, header=[0]).iloc[1:, :] for f in secondhand_data_list),
+        axis=0,
+        keys=secondhand_year_list,
+    )
+    .reset_index(level=[0])
+    .rename(columns={"level_0": "記錄年份"})
 )
-secondhand_df[("預售中古", "_")] = 0
-
+secondhand_df["預售中古"] = 0
+secondhand_df["建築完成年月"] = (
+    secondhand_df.get("建築完成年月").astype(str).apply(lambda x: x[:3])
+)
 raw_df = pd.concat(
     objs=(presale_df, secondhand_df),
     axis=0,
     ignore_index=True,
-).set_index(("編號", "serial number"))
-raw_df.columns = raw_df.columns.get_level_values(0)
+).set_index("編號")
+
 # %%
 trans_df = pd.concat(
     objs=(
@@ -72,6 +90,41 @@ trans_df = pd.concat(
         ),
         raw_df.get("土地移轉總面積平方公尺"),
         pd.get_dummies(raw_df.get("建物型態").fillna("其他")).add_prefix("建物型態_"),
+        ##############
+        raw_df.get("建築完成年月")
+        .isna()
+        .astype(int)
+        .rename({"建築完成年月": "是否有記錄建築完成年月"}),
+        pd.get_dummies(
+            data=(
+                raw_df.get("記錄年份").astype(float)
+                - raw_df.get("建築完成年月").astype(float)
+            ).apply(
+                lambda x: (
+                    "少於五年"
+                    if x <= 5
+                    else (
+                        "少於十年"
+                        if x <= 10
+                        else (
+                            "少於十五年"
+                            if x <= 15
+                            else (
+                                "少於二十年"
+                                if x <= 20
+                                else (
+                                    "少於二十五年"
+                                    if x <= 25
+                                    else "少於三十年" if x <= 30 else "其他"
+                                )
+                            )
+                        )
+                    )
+                )
+            ),
+            prefix="屋齡",
+        ),
+        ##############
         raw_df.get("土地移轉總面積平方公尺"),
         raw_df.get("建物移轉總面積平方公尺"),
         raw_df.get("車位移轉總面積平方公尺"),
@@ -96,7 +149,7 @@ trans_df = pd.concat(
 
 
 # %%
-trans_df.columns
+len(trans_df.columns)
 
 # %%
 
