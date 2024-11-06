@@ -47,7 +47,7 @@ raw_df = pd.concat(
 ).set_index(("編號", "serial number"))
 raw_df.columns = raw_df.columns.get_level_values(0)
 # %%
-tmp = pd.concat(
+trans_df = pd.concat(
     objs=(
         pd.get_dummies(data=raw_df["鄉鎮市區"].fillna("其他")).add_prefix("台中市"),
         pd.DataFrame.from_dict(
@@ -72,7 +72,9 @@ tmp = pd.concat(
         ),
         raw_df.get("土地移轉總面積平方公尺"),
         pd.get_dummies(raw_df.get("建物型態").fillna("其他")).add_prefix("建物型態_"),
+        raw_df.get("土地移轉總面積平方公尺"),
         raw_df.get("建物移轉總面積平方公尺"),
+        raw_df.get("車位移轉總面積平方公尺"),
         raw_df.get("建物現況格局-房"),
         raw_df.get("建物現況格局-廳"),
         raw_df.get("建物現況格局-衛"),
@@ -90,36 +92,18 @@ tmp = pd.concat(
         raw_df.get("總價元"),
     ),
     axis=1,
-)
+).astype(float)
+
 
 # %%
-tmp.columns
-
-# %%
-
-# %%
-[c[0] for c in raw_df.columns]
-# %%
-# np.unique(
-#     total_df[("都市土地使用分區", "the use zoning or compiles and checks")].astype(
-#         "str"
-#     ),
-#     return_counts=True,
-# )
-# %%
-df_columns_map = {
-    "c_" + str(idx): org_col[0] for idx, org_col in enumerate(raw_df.columns)
-}
-raw_df.columns = ["c_" + str(idx) for idx in range(len(raw_df.columns))]
+trans_df.columns
 
 # %%
 
 # %%
 
-# %%
-
-# sm = EstimateSurface(run_id="boston_housing", **config)
-# sm.fit_surface(X=train_df[["1stFlrSF", "2ndFlrSF"]], y=train_df["SalePrice"])
+sm = EstimateSurface(run_id="boston_housing", **config)
+sm.fit_surface(X=trans_df.drop(columns=["總價元"]), y=trans_df["總價元"])
 # %%
 # opt, a, b = optimize_f_hat(
 #     obj_func=sm.pred_surface,
