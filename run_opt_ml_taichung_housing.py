@@ -22,14 +22,18 @@ presale_key_list = []
 secondhand_data_list = []
 secondhand_key_list = []
 
-for path, root, files in os.walk("./data/taiwan_housing"):
+for path, root, files in os.walk("./data/taiwan_housing/113S2"):
     for f in files:
         if f.endswith("lvr_land_a.csv"):
-            secondhand_key_list.append((path.split("/")[-1][:3], f.split("_")[0]))
+            secondhand_key_list.append(
+                (path.split("/")[-1][:3], path.split("/")[-1][3:], f.split("_")[0])
+            )
             secondhand_data_list.append(os.path.join(path, f))
 
         if f.endswith("lvr_land_b.csv"):
-            presale_key_list.append((path.split("/")[-1][:3], f.split("_")[0]))
+            presale_key_list.append(
+                (path.split("/")[-1][:3], path.split("/")[-1][3:], f.split("_")[0])
+            )
             presale_data_list.append(os.path.join(path, f))
 
 
@@ -39,8 +43,8 @@ presale_df = (
         axis=0,
         keys=presale_key_list,
     )
-    .reset_index(level=[0, 1])
-    .rename(columns={"level_0": "記錄年份", "level_1": "城市"})
+    .reset_index(level=[0, 1, 2])
+    .rename(columns={"level_0": "記錄年份", "level_1": "記錄季度", "level_2": "城市"})
 )
 presale_df["建築完成年月"] = np.nan
 presale_df["預售中古"] = 1
@@ -51,8 +55,8 @@ secondhand_df = (
         axis=0,
         keys=secondhand_key_list,
     )
-    .reset_index(level=[0, 1])
-    .rename(columns={"level_0": "記錄年份", "level_1": "城市"})
+    .reset_index(level=[0, 1, 2])
+    .rename(columns={"level_0": "記錄年份", "level_1": "記錄季度", "level_2": "城市"})
 )
 secondhand_df["預售中古"] = 0
 secondhand_df["建築完成年月"] = (
@@ -61,24 +65,27 @@ secondhand_df["建築完成年月"] = (
     .str.replace("-", "")
     .apply(lambda x: x[:3])
 )
-raw_df = pd.concat(
-    objs=(presale_df, secondhand_df),
-    axis=0,
-    ignore_index=True,
-).set_index("編號")
 # %%
-# remove non city
+raw_df = (
+    pd.concat(
+        objs=(presale_df, secondhand_df),
+        axis=0,
+        ignore_index=True,
+    )
+    .drop_duplicates()
+)
+# %%
 raw_df = raw_df.loc[
-    raw_df["非都市土地使用編定"].isna()
-    & (raw_df["都市土地使用分區"] == "住")
-    & (~raw_df["建物型態"].isin(["其他", "辦公商業大樓", "店面(店鋪)"])),
+    (raw_df["都市土地使用分區"] == "住")
+    & (~raw_df["建物型態"].isin(["其他", "辦公商業大樓", "店面(店鋪)"]))
+    & (raw_df["總價元"].astype(int) <= 5e7),
     :,
 ]
 
 # %%
 trans_df = pd.concat(
     objs=(
-        pd.get_dummies(data=raw_df["城市"]).add_prefix("城市"),
+        pd.get_dummies(data=raw_df["城市"], prefix="城市"),
         pd.get_dummies(data=raw_df["鄉鎮市區"].fillna("其他")),
         pd.DataFrame.from_dict(
             {
@@ -93,8 +100,10 @@ trans_df = pd.concat(
         ).add_suffix("數量"),
         raw_df.get("土地移轉總面積平方公尺"),
         ##############
-        pd.get_dummies(raw_df.get("建物型態").fillna("其他")).add_prefix("建物型態_"),
+        pd.get_dummies(raw_df.get("建物型態").fillna("其他"), prefix="建物型態_"),
         ##############
+        pd.get_dummies(raw_df.get("記錄年份"), prefix="記錄年份"),
+        pd.get_dummies(raw_df.get("記錄季度"), prefix="記錄季度"),
         raw_df.get("建築完成年月")
         .isna()
         .astype(int)
@@ -155,12 +164,40 @@ trans_df = pd.concat(
 # %%
 len(trans_df.columns)
 
+
 # %%
+
+# hist, bin_edges = np.histogram(
+#     trans_df["總價元"],
+#     bins=np.arange(start=0.0, stop=trans_df["總價元"].max() + 5e5, step=5e5),
+#     density=True,
+# )
+# trans_df["價格區間內紀錄數量"] = pd.cut(
+#     trans_df["總價元"], bins=bin_edges, labels=hist, ordered=False
+# ).astype(float)
+
 
 # %%
 
 sm = EstimateSurface(run_id="boston_housing", **config)
 sm.fit_surface(X=trans_df.drop(columns=["總價元"]), y=trans_df["總價元"])
+price_pred = sm.pred_surface(valid_X=trans_df.drop(columns=["總價元"]))
+# %%
+plt.hist(
+    trans_df["總價元"],
+    bins=np.arange(start=0.0, stop=trans_df["總價元"].max() + 5e5, step=5e5),
+)
+plt.hist(
+    price_pred, bins=np.arange(start=0.0, stop=trans_df["總價元"].max() + 5e5, step=5e5)
+)
+plt.show()
+# %%
+plt.scatter(x=price_pred, y=trans_df["總價元"], c="k")
+plt.show()
+# %%
+plt.plot(trans_df["總價元"], trans_df["總價元"] - price_pred, "o", c="k")
+plt.plot(trans_df["總價元"], trans_df["總價元"] - price_pred, "o", c="k")
+plt.show()
 # %%
 # opt, a, b = optimize_f_hat(
 #     obj_func=sm.pred_surface,
