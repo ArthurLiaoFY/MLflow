@@ -11,6 +11,8 @@ class LinearLReluStack(torch.nn.Module):
             torch.nn.LeakyReLU(negative_slope=0.01),
             torch.nn.Linear(in_features=256, out_features=256),
             torch.nn.LeakyReLU(negative_slope=0.01),
+            torch.nn.Linear(in_features=256, out_features=256),
+            torch.nn.ReLU(),
             torch.nn.Linear(in_features=256, out_features=out_features),
         )
 

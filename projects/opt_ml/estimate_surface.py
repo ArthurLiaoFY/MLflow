@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from models.deep_models.models.basic_regression import LinearLReluStack
 from models.deep_models.training.early_stopping import EarlyStopping
 from models.deep_models.training.evaluate import RSquare
+from models.deep_models.training.inference_model import inference_model
 from models.deep_models.training.loss import root_mean_square_error
 from models.deep_models.training.train_model import train_model
 from models.deep_models.utils.prepare_data import to_dataloader, to_tensor
@@ -17,13 +18,23 @@ class EstimateSurface:
         self.model = LinearLReluStack(
             in_features=int(self.in_feature), out_features=int(self.out_feature)
         )
+        self.load_model()
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
             lr=float(self.lr),
         )
 
-    def fit_surface(self, X: np.ndarray, y: np.ndarray) -> None:
+    def load_model(self):
+        try:
+            self.model.load_state_dict(
+                torch.load(
+                    f"{self.model_file_path}/{self.run_id}_model.pt", weights_only=True
+                )
+            )
+        except FileNotFoundError:
+            pass
 
+    def fit_surface(self, X: np.ndarray, y: np.ndarray) -> None:
         train_x, test_x, train_y, test_y = train_test_split(
             X,
             y,
@@ -59,7 +70,12 @@ class EstimateSurface:
             epochs=int(self.epoch),
             mlflow_tracking=False,
         )
-        torch.save(self.model, f"{self.model_file_path}/{self.run_id}_model.pt")
+        torch.save(
+            self.model.state_dict(), f"{self.model_file_path}/{self.run_id}_model.pt"
+        )
 
     def pred_surface(self, valid_X: np.ndarray) -> np.ndarray:
-        return self.model(to_tensor(valid_X)).detach().cpu().numpy()
+        pred_result = inference_model(
+            nn_model=self.model, test_dataloader=to_dataloader(valid_X, shuffle=False)
+        )
+        return pred_result
