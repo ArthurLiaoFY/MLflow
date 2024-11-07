@@ -58,6 +58,12 @@ def root_mean_square_error(y_pred: torch.Tensor, y_true: torch.Tensor) -> torch.
     return torch.sqrt(torch.pow((y_pred - y_true), 2).mean())
 
 
+def root_mean_square_percentage_error(
+    y_pred: torch.Tensor, y_true: torch.Tensor
+) -> torch.Tensor:
+    return torch.sqrt((torch.pow((y_pred - y_true), 2) / torch.pow(y_true, 2)).mean())
+
+
 def fuzzy_root_mean_square_error(
     y_pred: torch.Tensor, y_true: torch.Tensor, epsilon: float = 0.1
 ) -> torch.Tensor:
