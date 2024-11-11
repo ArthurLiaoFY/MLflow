@@ -77,5 +77,6 @@ def load_presale_data(data_file_path: str) -> pd.DataFrame:
             "建物現況格局-廳",
             "建物現況格局-衛",
             "建物現況格局-隔間",
+            "總價元",
         ],
     ]
