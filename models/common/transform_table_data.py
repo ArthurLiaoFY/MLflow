@@ -57,3 +57,59 @@ class GetDummies:
                 ],
                 axis=0,
             )
+
+
+class Standardize:
+    @staticmethod
+    def sigmoid(
+        df: pd.DataFrame,
+        colname: str,
+    ) -> np.ndarray:
+        return 1 / (1 + np.exp(-df[colname]))
+
+    @staticmethod
+    def softmax(
+        df: pd.DataFrame,
+        colname: str,
+    ) -> np.ndarray:
+        exp_values = np.exp(df[colname] - np.max(df[colname]))
+        return exp_values / exp_values.sum()
+
+
+class ToType:
+    @staticmethod
+    def _to_type(df: pd.DataFrame, colname: str, type: type):
+        return df.get(colname).astype(type).to_numpy()[:, np.newaxis]
+
+    def to_int(
+        self,
+        df: pd.DataFrame,
+        colname: str,
+    ):
+        return self._to_type(
+            df=df,
+            colname=colname,
+            type=int,
+        )
+
+    def to_str(
+        self,
+        df: pd.DataFrame,
+        colname: str,
+    ):
+        return self._to_type(
+            df=df,
+            colname=colname,
+            type=str,
+        )
+
+    def to_float(
+        self,
+        df: pd.DataFrame,
+        colname: str,
+    ):
+        return self._to_type(
+            df,
+            colname,
+            float,
+        )
