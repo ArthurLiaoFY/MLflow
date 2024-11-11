@@ -1,36 +1,35 @@
 import os
 
-import numpy as np
 import pandas as pd
+
+code_to_city_map = {
+    "a": "臺北市",
+    "b": "臺中市",
+    "c": "基隆市",
+    "d": "臺南市",
+    "e": "高雄市",
+    "f": "新北市",
+    "g": "宜蘭縣",
+    "h": "桃園市",
+    "i": "嘉義市",
+    "j": "新竹縣",
+    "k": "苗栗縣",
+    "m": "南投縣",
+    "n": "彰化縣",
+    "o": "新竹市",
+    "p": "雲林縣",
+    "q": "嘉義縣",
+    "t": "屏東縣",
+    "u": "花蓮縣",
+    "v": "臺東縣",
+    "w": "金門縣",
+    "x": "澎湖縣",
+}
 
 
 def load_presale_data(data_file_path: str) -> pd.DataFrame:
     presale_data_list = []
     presale_key_list = []
-
-    code_to_city_map = {
-        "a": "臺北市",
-        "b": "臺中市",
-        "c": "基隆市",
-        "d": "臺南市",
-        "e": "高雄市",
-        "f": "新北市",
-        "g": "宜蘭縣",
-        "h": "桃園市",
-        "i": "嘉義市",
-        "j": "新竹縣",
-        "k": "苗栗縣",
-        "m": "南投縣",
-        "n": "彰化縣",
-        "o": "新竹市",
-        "p": "雲林縣",
-        "q": "嘉義縣",
-        "t": "屏東縣",
-        "u": "花蓮縣",
-        "v": "臺東縣",
-        "w": "金門縣",
-        "x": "澎湖縣",
-    }
 
     for path, root, files in os.walk(data_file_path):
         for f in files:
