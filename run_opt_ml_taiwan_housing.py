@@ -37,55 +37,68 @@ sm.fit_surface(
     X=trans_df[:, :-1],
     y=trans_df[:, -1],
 )
+
 # %%
-price_pred = sm.pred_surface(
-    valid_X=trans_df[:, :-1],
-)
-# %%
-plt.hist(
-    trans_df[:, -1],
-    bins=np.arange(start=0.0, stop=trans_df[:, -1].max() + 5e5, step=5e5),
-)
-plt.hist(
-    price_pred, bins=np.arange(start=0.0, stop=trans_df[:, -1].max() + 5e5, step=5e5)
-)
-plt.show()
-# %%
-plt.scatter(x=price_pred, y=trans_df[:, -1], c="k")
-plt.show()
-# %%
-plt.plot(
-    trans_df[:, -1],
-    trans_df[:, -1] - price_pred,
-    "o",
-    c="k",
-)
-plt.show()
+offset = {
+    "城市": "臺中市",
+    "鄉鎮市區": "西區",
+    "土地數量": "1",
+    "建物數量": "1",
+    "車位數量": "1",
+    "建物型態": "住宅大樓(11層含以上有電梯)",
+    "記錄季度": "S3",
+    "土地移轉總面積平方公尺": "23.0",
+    "建物現況格局-房": "3",
+    "建物現況格局-廳": "2",
+    "建物現況格局-衛": "2",
+    "建物現況格局-隔間": "1",
+}
+
+
+def obj_func(x: np.ndarray):
+    global offset, trans_cls
+    return sm.pred_surface(
+        trans_cls.fit_transform(
+            df=pd.DataFrame.from_dict(
+                {
+                    idx: {
+                        **offset,
+                        "車位移轉總面積平方公尺": sample[0],
+                        "建物移轉總面積平方公尺": sample[1],
+                    }
+                    for idx, sample in enumerate(x.reshape(1, -1) if x.ndim == 1 else x)
+                },
+                orient="index",
+            ),
+            inference=True,
+        )
+    )
+
+
 # %%
 opt, a, b = optimize_f_hat(
-    obj_func=sm.pred_surface,
+    obj_func=obj_func,
     constraint_ueq=[
-        lambda x: 2000 - x[0] - x[1],
+        lambda x: 200 - x[0] - x[1],
+        lambda x: 20 - x[0],
+        lambda x: 10 - x[1],
     ],
     max_iter=int(config.get("max_iter")),
     size_pop=int(config.get("size_pop")),
-    x_min=x_min,
-    x_max=x_max,
+    x_min=[20, 10],
+    x_max=[40, 200],
     opt_type=config.get("opt_type"),
-    proj_case="housing",
 )
+
 # %%
-# print(opt.best_x)
-# print(opt.best_y)
-# %%
-# plot_obj_surface(
-#     pso_opt=opt,
-#     func=sm.pred_surface,
-#     max_iter=int(config.get("max_iter")),
-#     x_max=x_max,
-#     x_min=x_min,
-#     x1_step=int(config.get("x1_step")),
-#     x2_step=int(config.get("x2_step")),
-#     animate=True,
-# )
+plot_obj_surface(
+    pso_opt=opt,
+    func=obj_func,
+    max_iter=int(config.get("max_iter")),
+    x_min=[20, 10],
+    x_max=[40, 200],
+    x1_step=int(config.get("x1_step")),
+    x2_step=int(config.get("x2_step")),
+    animate=True,
+)
 # %%

@@ -23,14 +23,15 @@ X_train, X_val, y_train, y_val = sd.get_data(
     train_size_ratio=float(config.get("train_size_ratio"))
 )
 # %%
-sm = EstimateSurface(run_id="simulate", **config)
+sm = EstimateSurface(run_id="simulate", in_feature=2, **config)
 sm.fit_surface(X=X_train, y=y_train)
 # %%
 y_hat = sm.pred_surface(valid_X=X_val)
 
 
 def obj_func(x: np.ndarray):
-    return float(sm.pred_surface(np.array([x])).item())
+    pred = sm.pred_surface(x.reshape(1, -1) if x.ndim == 1 else x)
+    return pred.item() if len(pred) == 1 else pred
 
 
 opt, a, b = optimize_f_hat(
@@ -45,14 +46,14 @@ opt, a, b = optimize_f_hat(
 # %%
 plot_obj_surface(
     pso_opt=opt,
-    func=sm.pred_surface,
+    func=obj_func,
     max_iter=int(config.get("max_iter")),
     x_max=sd.x_max,
     x_min=sd.x_min,
     x1_step=int(config.get("x1_step")),
     x2_step=int(config.get("x2_step")),
     animate=True,
-    desc=config.get("func"),
+    desc="simulate",
 )
 
 # %%

@@ -76,7 +76,6 @@ class EstimateSurface:
         )
 
     def pred_surface(self, valid_X: np.ndarray) -> np.ndarray:
-        pred_result = inference_model(
+        return inference_model(
             nn_model=self.model, test_dataloader=to_dataloader(valid_X, shuffle=False)
         )
-        return pred_result
