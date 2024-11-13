@@ -86,30 +86,18 @@ class ToType:
         df: pd.DataFrame,
         colname: str,
     ):
-        return self._to_type(
-            df=df,
-            colname=colname,
-            type=int,
-        )
+        return self._to_type(df, colname, int)
 
     def to_str(
         self,
         df: pd.DataFrame,
         colname: str,
     ):
-        return self._to_type(
-            df=df,
-            colname=colname,
-            type=str,
-        )
+        return self._to_type(df, colname, str)
 
     def to_float(
         self,
         df: pd.DataFrame,
         colname: str,
     ):
-        return self._to_type(
-            df,
-            colname,
-            float,
-        )
+        return self._to_type(df, colname, float)

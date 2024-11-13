@@ -55,6 +55,10 @@ def load_presale_data(data_file_path: str) -> pd.DataFrame:
         )
     ).reset_index(drop=True)
 
+    presale_df["建物現況格局-隔間"] = presale_df.get("建物現況格局-隔間").apply(
+        lambda x: 1 if x == "有" else 0
+    )
+
     return presale_df.loc[
         (presale_df["都市土地使用分區"] == "住")
         & (presale_df["解約情形"].isna())
