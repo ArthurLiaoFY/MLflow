@@ -13,20 +13,9 @@ class TransformData(GetDummies, Standardize, ToType):
             [
                 self.get_dummies(df=df, colname="城市"),
                 self.get_dummies(df=df, colname="鄉鎮市區"),
-                pd.DataFrame.from_dict(
-                    {
-                        idx: dict(zip(key_l, value_l))
-                        for idx, key_l, value_l in zip(
-                            df.index,
-                            df.loc[:, "交易筆棟數"].str.findall(r"[^\d]+").to_numpy(),
-                            df.loc[:, "交易筆棟數"].str.findall(r"\d+").to_numpy(),
-                        )
-                    },
-                    orient="index",
-                )
-                .add_suffix("數量")
-                .astype(int)
-                .to_numpy(),
+                self.to_int(df=df, colname="土地數量"),
+                self.to_int(df=df, colname="建物數量"),
+                self.to_int(df=df, colname="車位數量"),
                 self.get_dummies(df=df, colname="建物型態"),
                 self.get_dummies(df=df, colname="記錄季度"),
                 self.to_float(df=df, colname="土地移轉總面積平方公尺"),

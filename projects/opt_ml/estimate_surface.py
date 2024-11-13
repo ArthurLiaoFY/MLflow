@@ -12,8 +12,9 @@ from models.deep_models.utils.prepare_data import to_dataloader, to_tensor
 
 
 class EstimateSurface:
-    def __init__(self, run_id, **kwargs) -> None:
+    def __init__(self, run_id, in_feature, **kwargs) -> None:
         self.run_id = run_id
+        self.in_feature = in_feature
         self.__dict__.update(kwargs)
         self.model = LinearLReluStack(
             in_features=int(self.in_feature), out_features=int(self.out_feature)
