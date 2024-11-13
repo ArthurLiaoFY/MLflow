@@ -6,7 +6,6 @@ from sko.GA import GA
 from sko.PSO import PSO
 
 
-# %%
 def optimize_f_hat(
     obj_func,
     constraint_ueq: list,
@@ -16,15 +15,10 @@ def optimize_f_hat(
     x_max: list,
     opt_type: str = "DE",
 ):
-
-
-    def func(x: np.ndarray):
-        return float(obj_func(np.array([x])).item())
-
     match opt_type:
         case "DE":
             opt = DE(
-                func=func,
+                func=obj_func,
                 n_dim=len(x_max),
                 size_pop=size_pop,
                 max_iter=max_iter,
@@ -38,7 +32,7 @@ def optimize_f_hat(
 
         case "GA":
             opt = GA(
-                func=func,
+                func=obj_func,
                 n_dim=len(x_max),
                 size_pop=size_pop,
                 max_iter=max_iter,
@@ -51,7 +45,7 @@ def optimize_f_hat(
 
         case "PSO":
             opt = PSO(
-                func=func,
+                func=obj_func,
                 n_dim=len(x_max),
                 pop=size_pop,
                 max_iter=max_iter,

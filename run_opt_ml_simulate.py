@@ -1,6 +1,8 @@
 # %%
 from configparser import ConfigParser
 
+import numpy as np
+
 from projects.opt_ml.estimate_surface import EstimateSurface
 from projects.opt_ml.optimize_response import optimize_f_hat
 from projects.opt_ml.plot_fns import plot_obj_surface
@@ -27,8 +29,12 @@ sm.fit_surface(X=X_train, y=y_train)
 y_hat = sm.pred_surface(valid_X=X_val)
 
 
+def obj_func(x: np.ndarray):
+    return float(sm.pred_surface(np.array([x])).item())
+
+
 opt, a, b = optimize_f_hat(
-    obj_func=sm.pred_surface,
+    obj_func=obj_func,
     constraint_ueq=sd.constraint_ueq,
     max_iter=int(config.get("max_iter")),
     size_pop=int(config.get("size_pop")),
