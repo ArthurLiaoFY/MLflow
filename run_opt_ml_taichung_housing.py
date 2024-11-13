@@ -10,48 +10,27 @@ from projects.opt_ml.estimate_surface import EstimateSurface
 from projects.opt_ml.load_data import load_presale_data
 from projects.opt_ml.optimize_response import optimize_f_hat
 from projects.opt_ml.plot_fns import plot_obj_surface
+from projects.opt_ml.trans_data import TransformData
 
 # load config
 config = ConfigParser()
 config.read("projects/opt_ml/opt_ml.ini")
 config = config["taiwan_housing"]
+
+trans_cls = TransformData()
+
 presale_df = load_presale_data(data_file_path=config.get("data_file_path"))
 
 # %%
-trans_df = pd.concat(
-    objs=(
-        pd.get_dummies(data=presale_df["城市"], prefix="城市"),
-        pd.get_dummies(data=presale_df["鄉鎮市區"].fillna("其他")),
-        pd.DataFrame.from_dict(
-            {
-                idx: dict(zip(key_l, value_l))
-                for idx, key_l, value_l in zip(
-                    presale_df.index,
-                    presale_df.loc[:, "交易筆棟數"].str.findall(r"[^\d]+").to_numpy(),
-                    presale_df.loc[:, "交易筆棟數"].str.findall(r"\d+").to_numpy(),
-                )
-            },
-            orient="index",
-        ).add_suffix("數量"),
-        pd.get_dummies(presale_df.get("建物型態").fillna("其他"), prefix="建物型態_"),
-        pd.get_dummies(presale_df.get("記錄年份"), prefix="記錄年份"),
-        pd.get_dummies(presale_df.get("記錄季度"), prefix="記錄季度"),
-        presale_df.get("土地移轉總面積平方公尺"),
-        presale_df.get("建物移轉總面積平方公尺"),
-        presale_df.get("車位移轉總面積平方公尺"),
-        presale_df.get("建物現況格局-房"),
-        presale_df.get("建物現況格局-廳"),
-        presale_df.get("建物現況格局-衛"),
-        presale_df.get("建物現況格局-隔間").apply(lambda x: 1 if x == "有" else 0),
-        ##############
-        presale_df.get("總價元"),
-    ),
-    axis=1,
-).astype(float)
-
+trans_df = trans_cls.fit_transform(df=presale_df)
+# %%
+# b = trans_cls.fit_transform(df=presale_df.iloc[0, :])
 # %%
 sm = EstimateSurface(run_id="boston_housing", **config)
-sm.fit_surface(X=trans_df.drop(columns=["總價元"]), y=trans_df["總價元"])
+sm.fit_surface(
+    X=trans_df[:, :-1],
+    y=trans_df[:, -1],
+)
 price_pred = sm.pred_surface(valid_X=trans_df.drop(columns=["總價元"]))
 # %%
 plt.hist(
