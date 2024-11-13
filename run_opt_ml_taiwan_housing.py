@@ -17,37 +17,46 @@ config = ConfigParser()
 config.read("projects/opt_ml/opt_ml.ini")
 config = config["taiwan_housing"]
 
-trans_cls = TransformData()
+trans_cls = TransformData(
+    dismiss_amount=100,
+)
 
 presale_df = load_presale_data(data_file_path=config.get("data_file_path"))
 
 # %%
 trans_df = trans_cls.fit_transform(df=presale_df)
 # %%
-# b = trans_cls.fit_transform(df=presale_df.iloc[0, :])
+b = trans_cls.fit_transform(df=presale_df.iloc[[0], :])
 # %%
-sm = EstimateSurface(run_id="boston_housing", **config)
+sm = EstimateSurface(
+    run_id="boston_housing",
+    in_feature=trans_df.shape[-1] - 1,
+    **config,
+)
 sm.fit_surface(
     X=trans_df[:, :-1],
     y=trans_df[:, -1],
 )
-price_pred = sm.pred_surface(valid_X=trans_df.drop(columns=["總價元"]))
+# %%
+price_pred = sm.pred_surface(
+    valid_X=trans_df[:, :-1],
+)
 # %%
 plt.hist(
-    trans_df["總價元"],
-    bins=np.arange(start=0.0, stop=trans_df["總價元"].max() + 5e5, step=5e5),
+    trans_df[:, -1],
+    bins=np.arange(start=0.0, stop=trans_df[:, -1].max() + 5e5, step=5e5),
 )
 plt.hist(
-    price_pred, bins=np.arange(start=0.0, stop=trans_df["總價元"].max() + 5e5, step=5e5)
+    price_pred, bins=np.arange(start=0.0, stop=trans_df[:, -1].max() + 5e5, step=5e5)
 )
 plt.show()
 # %%
-plt.scatter(x=price_pred, y=trans_df["總價元"], c="k")
+plt.scatter(x=price_pred, y=trans_df[:, -1], c="k")
 plt.show()
 # %%
 plt.plot(
-    trans_df["總價元"],
-    trans_df["總價元"] - price_pred,
+    trans_df[:, -1],
+    trans_df[:, -1] - price_pred,
     "o",
     c="k",
 )
@@ -63,6 +72,7 @@ opt, a, b = optimize_f_hat(
     x_min=x_min,
     x_max=x_max,
     opt_type=config.get("opt_type"),
+    proj_case="housing",
 )
 # %%
 # print(opt.best_x)
