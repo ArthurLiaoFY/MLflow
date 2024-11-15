@@ -2,8 +2,9 @@ import os
 
 import numpy as np
 import pandas as pd
-from models.linear_models.linear_model import LinearModel
 from scipy import stats
+
+from models.linear_models.models.linear_model import LinearModel
 
 
 # %%
