@@ -13,7 +13,7 @@ def plot_obj_surface(
     x1_step: float,
     x2_step: float,
     animate: bool = False,
-    desc: str = "boston",
+    desc: str = "housing",
 ):
     x1_grid = np.linspace(
         start=x_min[0],
@@ -75,57 +75,14 @@ def plot_obj_surface(
         linestyle="None",
     )
     match desc:
-        case "F1":
+        case "simulate":
             pass
-            # ax1.axline(
-            #     xy1=(0, 1),
-            #     slope=4,
-            #     color="r",
-            #     linestyle="--",
-            #     lw=1,
-            # )
-            # ax1.hlines(
-            #     y=0.5,
-            #     xmin=x_min[1],
-            #     xmax=x_max[1],
-            #     color="r",
-            #     linestyles="--",
-            #     lw=1,
-            # )
-        case "F2":
-            pass
-            # t = np.linspace(0, 2 * np.pi, 40)
-            # ax1.plot(
-            #     2 * np.cos(t),
-            #     2 * np.sin(t),
-            #     color="r",
-            #     linestyle="--",
-            #     lw=1,
-            # )
-        case "F3":
-            pass
-            # t = np.linspace(0, 2 * np.pi, 40)
-            # ax1.plot(
-            #     0.5 * np.cos(t) + 1,
-            #     0.5 * np.sin(t),
-            #     color="r",
-            #     linestyle="--",
-            #     lw=1,
-            # )
 
-        case _:
-            # go boston
+        case "housing":
+            # go housing
             ax1.axline(
-                xy1=(
-                    (x_min[0], 2000 - x_min[0])
-                    if 2000 - x_min[0] <= x_min[1]
-                    else (2000 - x_min[1], x_min[1])
-                ),
-                xy2=(
-                    (x_max[0], 2000 - x_max[0])
-                    if 2000 - x_max[0] >= x_max[1]
-                    else (2000 - x_max[1], x_max[1])
-                ),
+                xy1=(20, 180),
+                xy2=(40, 160),
                 color="r",
                 linestyle="--",
                 lw=1,
