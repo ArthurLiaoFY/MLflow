@@ -1,11 +1,14 @@
 import numpy as np
 
 
-def bounded_kernel_wrapper(u, h, kernel_func):
-    if abs(u / h) <= 1:
-        return kernel_func(u / h) / h
-    else:
-        return 0
+def bounded_kernel_wrapper(kernel_func):
+    def wrapper(u, h):
+        if abs(u / h) <= 1:
+            return kernel_func(u / h) / h
+        else:
+            return 0
+
+    return wrapper
 
 
 @bounded_kernel_wrapper
