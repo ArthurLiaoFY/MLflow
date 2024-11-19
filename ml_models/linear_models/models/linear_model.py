@@ -13,13 +13,32 @@ class LinearModel(LinearBaseModel, StatisticalModel):
     def fit(
         self, X: np.ndarray, y: np.ndarray, W: np.ndarray | None = None
     ) -> np.ndarray:
-        return self.__fit(
+        return self._fit(
             X=X,
             y=y,
             W=W,
         )
 
     def predict(self, X: np.ndarray) -> np.ndarray | None:
-        return self.__predict(
+        return self._predict(
+            X=X,
+        )
+
+
+class ANOVA(LinearBaseModel, StatisticalModel):
+    def __init__(self, add_intercept: bool = True):
+        super().__init__(add_intercept)
+
+    def fit(
+        self, X: np.ndarray, y: np.ndarray, W: np.ndarray | None = None
+    ) -> np.ndarray:
+        return self._fit(
+            X=X,
+            y=y,
+            W=W,
+        )
+
+    def predict(self, X: np.ndarray) -> np.ndarray | None:
+        return self._predict(
             X=X,
         )

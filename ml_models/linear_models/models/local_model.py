@@ -18,14 +18,14 @@ class LocalConstantModel(LocalBaseModel, StatisticalModel):
         super().__init__(kernel_func)
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
-        return self.__fit(
+        return self._fit(
             X=X,
             y=y,
             to_model_matrix_func=to_local_constant_model_matrix,
         )
 
     def predict(self, X: np.ndarray) -> np.ndarray | None:
-        return self.__predict(
+        return self._predict(
             X=X,
             to_model_matrix_func=to_local_constant_model_matrix,
         )
@@ -39,14 +39,14 @@ class LocalLinearModel(LocalBaseModel, StatisticalModel):
         super().__init__(kernel_func)
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
-        return self.__fit(
+        return self._fit(
             X=X,
             y=y,
             to_model_matrix_func=to_local_linear_model_matrix,
         )
 
     def predict(self, X: np.ndarray) -> np.ndarray | None:
-        return self.__predict(
+        return self._predict(
             X=X,
             to_model_matrix_func=to_local_linear_model_matrix,
         )
@@ -61,14 +61,14 @@ class LocalPolynomialModel(LocalBaseModel, StatisticalModel):
         super().__init__(kernel_func)
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
-        return self.__fit(
+        return self._fit(
             X=X,
             y=y,
             to_model_matrix_func=to_local_polynomial_model_matrix,
         )
 
     def predict(self, X: np.ndarray) -> np.ndarray | None:
-        return self.__predict(
+        return self._predict(
             X=X,
             to_model_matrix_func=to_local_polynomial_model_matrix,
         )

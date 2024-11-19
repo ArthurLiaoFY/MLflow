@@ -5,8 +5,6 @@ import numpy as np
 import plotly
 import plotly.graph_objects as go
 
-from .decorator import linear_model_fit_check, local_model_fit_check
-
 
 class StatisticalModel:
     @abstractmethod
@@ -29,6 +27,11 @@ class StatisticalModel:
         fig.show()
 
 
+class StatisticalTest:
+    def __init__(self):
+        pass
+
+
 class LocalBaseModel:
     def __init__(self, kernel_func: Callable, num_of_knots: int = 51):
         self.kernel_func = kernel_func
@@ -42,7 +45,7 @@ class LocalBaseModel:
     def get_weight_matrix(self, X: np.ndarray, knot: float) -> np.ndarray:
         return np.diag([self.kernel_func(x - knot) for x in X.squeeze()])
 
-    def __local_fit(
+    def _local_fit(
         self,
         X: np.ndarray,
         y: np.ndarray,
@@ -50,7 +53,7 @@ class LocalBaseModel:
         to_model_matrix_func: Callable,
     ) -> None:
         model_matrix = to_model_matrix_func(X=X, knot=knot)
-        weight_matrix = self.get_weight_matrix(X=X)
+        weight_matrix = self.get_weight_matrix(X=X, knot=knot)
         self.beta_hat[knot] = (
             np.linalg.pinv(model_matrix.T @ weight_matrix @ model_matrix)
             @ model_matrix.T
@@ -58,7 +61,7 @@ class LocalBaseModel:
             @ y
         )
 
-    def __local_predict(
+    def _local_predict(
         self,
         X: np.ndarray,
         knot: float,
@@ -67,24 +70,26 @@ class LocalBaseModel:
         model_matrix = to_model_matrix_func(X=X, knot=knot)
         return model_matrix @ self.beta_hat[knot]
 
-    @local_model_fit_check
-    def __fit(
+    def _fit(
         self,
         X: np.ndarray,
         y: np.ndarray,
         to_model_matrix_func: Callable,
     ) -> np.ndarray:
-        self.knots = self.get_knots(X=X)
-        for knot in self.knots:
-            self.__local_fit(
-                X=X,
-                y=y,
-                knot=knot,
-                to_model_matrix_func=to_model_matrix_func,
-            )
-        self.fitted = True
+        if (X.ndim in (1, 2)) and X.shape[0] == y.shape[0]:
+            self.knots = self.get_knots(X=X)
+            for knot in self.knots:
+                self._local_fit(
+                    X=X,
+                    y=y,
+                    knot=knot,
+                    to_model_matrix_func=to_model_matrix_func,
+                )
+            self.fitted = True
+        else:
+            return None
 
-    def __predict(
+    def _predict(
         self,
         X: np.ndarray,
         to_model_matrix_func: Callable,
@@ -92,7 +97,7 @@ class LocalBaseModel:
         return (
             np.array(
                 [
-                    self.__local_predict(
+                    self._local_predict(
                         X=X,
                         knot=knot,
                         to_model_matrix_func=to_model_matrix_func,
@@ -110,13 +115,13 @@ class LinearBaseModel:
         self.add_intercept = add_intercept
         self.fitted = False
 
-    @linear_model_fit_check
-    def __fit(
-        self, X: np.ndarray, y: np.ndarray, W: np.ndarrayNone = None
-    ) -> np.ndarray: | 
-        W = np.eye(X.shape[-1]) if W is None else W
-        self.beta_hat = np.linalg.pinv(X.T @ W @ X) @ X.T @ W @ y
-        self.fitted = True
+    def _fit(self, X: np.ndarray, y: np.ndarray, W: np.ndarray | None = None) -> None:
+        if (X.ndim in (1, 2)) and X.shape[0] == y.shape[0]:
+            W = np.eye(X.shape[-1]) if W is None else W
+            self.beta_hat = np.linalg.pinv(X.T @ W @ X) @ X.T @ W @ y
+            self.fitted = True
+        else:
+            return None
 
-    def __predict(self, X: np.ndarray) -> np.ndarray:
+    def _predict(self, X: np.ndarray) -> np.ndarray:
         return X @ self.beta_hat
