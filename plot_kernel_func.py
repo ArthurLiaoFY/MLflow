@@ -1,7 +1,7 @@
 import plotly
 import plotly.graph_objects as go
 
-from models.linear_models.kernel_functions import *
+from ml_models.linear_models.kernel_functions import *
 
 x_span = np.linspace(start=-1.5, stop=1.5, num=401)
 

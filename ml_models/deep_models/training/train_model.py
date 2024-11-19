@@ -6,15 +6,15 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 import mlflow
-from models.deep_models.training.early_stopping import EarlyStopping
-from models.deep_models.training.evaluate import (
+from ml_models.deep_models.training.early_stopping import EarlyStopping
+from ml_models.deep_models.training.evaluate import (
     Accuracy,
     AreaUnderCurve,
     Precision,
     Recall,
     RSquare,
 )
-from models.deep_models.utils.prepare_data import get_device
+from ml_models.deep_models.utils.prepare_data import get_device
 
 
 def train_model(

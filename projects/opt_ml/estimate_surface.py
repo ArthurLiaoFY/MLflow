@@ -2,13 +2,13 @@ import numpy as np
 import torch
 from sklearn.model_selection import train_test_split
 
-from models.deep_models.models.basic_regression import LinearLReluStack
-from models.deep_models.training.early_stopping import EarlyStopping
-from models.deep_models.training.evaluate import RSquare
-from models.deep_models.training.inference_model import inference_model
-from models.deep_models.training.loss import root_mean_square_error
-from models.deep_models.training.train_model import train_model
-from models.deep_models.utils.prepare_data import to_dataloader, to_tensor
+from ml_models.deep_models.models.basic_regression import LinearLReluStack
+from ml_models.deep_models.training.early_stopping import EarlyStopping
+from ml_models.deep_models.training.evaluate import RSquare
+from ml_models.deep_models.training.inference_model import inference_model
+from ml_models.deep_models.training.loss import root_mean_square_error
+from ml_models.deep_models.training.train_model import train_model
+from ml_models.deep_models.utils.prepare_data import to_dataloader, to_tensor
 
 
 class EstimateSurface:

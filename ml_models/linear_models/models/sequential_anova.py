@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from models.linear_models.models.linear_model import LinearModel
+from ml_models.linear_models.models.linear_model import LinearModel
 
 
 # %%

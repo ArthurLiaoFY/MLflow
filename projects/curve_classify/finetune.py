@@ -3,19 +3,19 @@ import torch
 import torch.backends.cudnn as cudnn
 from sklearn.model_selection import train_test_split
 
-from models.deep_models.models.conv_gru_att import ConvolutionalGRUAttention
-from models.deep_models.models.tfc import target_classifier
-from models.deep_models.training.early_stopping import EarlyStopping
-from models.deep_models.training.evaluate import (
+from ml_models.deep_models.models.conv_gru_att import ConvolutionalGRUAttention
+from ml_models.deep_models.models.tfc import target_classifier
+from ml_models.deep_models.training.early_stopping import EarlyStopping
+from ml_models.deep_models.training.evaluate import (
     Accuracy,
     AreaUnderCurve,
     Precision,
     Recall,
 )
-from models.deep_models.training.loss import cross_entropy_loss
-from models.deep_models.training.train_model import train_model
-from models.deep_models.utils.prepare_data import to_dataloader
-from models.deep_models.utils.check_device import get_device
+from ml_models.deep_models.training.loss import cross_entropy_loss
+from ml_models.deep_models.training.train_model import train_model
+from ml_models.deep_models.utils.check_device import get_device
+from ml_models.deep_models.utils.prepare_data import to_dataloader
 
 cudnn.benchmark = True
 
