@@ -33,7 +33,7 @@ class LocalModel:
     def get_weight_matrix(self, X: np.ndarray, knot: float) -> np.ndarray:
         return np.diag([self.kernel_func(x - knot) for x in X.squeeze()])
 
-    def local_fit(
+    def __local_fit(
         self,
         X: np.ndarray,
         y: np.ndarray,
@@ -51,7 +51,7 @@ class LocalModel:
 
         return model_matrix @ self.beta_hat[knot]
 
-    def local_predict(
+    def __local_predict(
         self,
         X: np.ndarray,
         knot: float,
@@ -61,7 +61,7 @@ class LocalModel:
         return model_matrix @ self.beta_hat[knot]
 
     @local_model_fit_check
-    def fit(
+    def __fit(
         self,
         X: np.ndarray,
         y: np.ndarray,
@@ -69,21 +69,21 @@ class LocalModel:
     ) -> np.ndarray:
         self.knots = self.get_knots(X=X)
         for knot in self.knots:
-            self.local_fit(
+            self.__local_fit(
                 X=X,
                 y=y,
                 knot=knot,
                 to_model_matrix_func=to_model_matrix_func,
             )
 
-    def predict(
+    def __predict(
         self,
         X: np.ndarray,
         to_model_matrix_func: Callable,
     ) -> np.ndarray:
         return np.array(
             [
-                self.local_predict(
+                self.__local_predict(
                     X=X,
                     knot=knot,
                     to_model_matrix_func=to_model_matrix_func,
@@ -100,11 +100,18 @@ class LocalConstantModel(LocalModel):
     ):
         super().__init__(kernel_func)
 
-    def fit():
-        pass
+    def fit(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
+        return self.__fit(
+            X=X,
+            y=y,
+            to_model_matrix_func=to_local_constant_model_matrix,
+        )
 
-    def predict():
-        pass
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        return self.__predict(
+            X=X,
+            to_model_matrix_func=to_local_constant_model_matrix,
+        )
 
 
 class LocalLinearModel(LocalModel):
@@ -114,11 +121,18 @@ class LocalLinearModel(LocalModel):
     ):
         super().__init__(kernel_func)
 
-    def fit():
-        pass
+    def fit(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
+        return self.__fit(
+            X=X,
+            y=y,
+            to_model_matrix_func=to_local_linear_model_matrix,
+        )
 
-    def predict():
-        pass
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        return self.__predict(
+            X=X,
+            to_model_matrix_func=to_local_linear_model_matrix,
+        )
 
 
 class LocalPolynomialModel(LocalModel):
@@ -129,8 +143,15 @@ class LocalPolynomialModel(LocalModel):
     ):
         super().__init__(kernel_func)
 
-    def fit():
-        pass
+    def fit(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
+        return self.__fit(
+            X=X,
+            y=y,
+            to_model_matrix_func=to_local_polynomial_model_matrix,
+        )
 
-    def predict():
-        pass
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        return self.__predict(
+            X=X,
+            to_model_matrix_func=to_local_polynomial_model_matrix,
+        )
