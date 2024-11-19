@@ -12,7 +12,7 @@ def to_model_matrix(X: np.ndarray) -> np.ndarray:
     )
 
 
-def to_local_constant_model_matrix(X: np.ndarray) -> np.ndarray:
+def to_local_constant_model_matrix(X: np.ndarray, knot: float) -> np.ndarray:
     return np.ones(shape=(X.shape[0], 1))
 
 
