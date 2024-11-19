@@ -1,14 +1,18 @@
 import numpy as np
 
 
-def to_model_matrix(X: np.ndarray) -> np.ndarray:
+def to_model_matrix(X: np.ndarray, add_intercept: bool = True) -> np.ndarray:
     X = X if X.ndim == 2 else X[:, np.newaxis]
-    return np.concatenate(
-        (
-            np.ones(shape=(X.shape[0], 1)),
-            X,
-        ),
-        axis=1,
+    return (
+        np.concatenate(
+            (
+                np.ones(shape=(X.shape[0], 1)),
+                X,
+            ),
+            axis=1,
+        )
+        if add_intercept
+        else X
     )
 
 
