@@ -5,6 +5,10 @@ import numpy as np
 import plotly
 import plotly.graph_objects as go
 
+from ml_models.linear_models.kernel_functions import softmax
+from ml_models.linear_models.loss import root_mean_square_error
+from ml_models.linear_models.metrics import r_square
+
 
 class StatisticalModel:
     @abstractmethod
@@ -15,14 +19,56 @@ class StatisticalModel:
     def predict(self, X: np.ndarray) -> np.ndarray:
         raise NotImplemented
 
-    def plot_residual(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
+    def plot(self):
+        pass
+
+    def plot_residual(self, X: np.ndarray, y: np.ndarray) -> None:
         residual = (self.predict(X=X) - y).squeeze()
         fig = go.Figure()
         fig.add_trace(
             go.Scatter(
                 x=X.squeeze(),
-                y=(self.predict(X=X) - y).squeeze(),
+                y=residual,
+                mode="markers",
+                name="Residuals",
             )
+        )
+        fig.add_hline(
+            y=0,
+            line_dash="dash",
+            line_color="black",
+        )
+        fig.update_layout(
+            title={
+                "text": f"Residual Plot, RMSE: {root_mean_square_error(y_true=y, y_pred=self.predict(X=X)):.4f}",
+                "x": 0.5,
+                "xanchor": "center",
+                "yanchor": "top",
+            },
+            xaxis_title="X",
+            yaxis_title="Residuals",
+        )
+        fig.show()
+
+    def plot_fitted_value(self, X: np.ndarray, y: np.ndarray) -> None:
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=self.predict(X=X),
+                y=y,
+                mode="markers",
+            )
+        )
+
+        fig.update_layout(
+            title={
+                "text": f"Fitted Plot, R square: {r_square(y_true=y, y_pred=self.predict(X=X)):.4f}",
+                "x": 0.5,
+                "xanchor": "center",
+                "yanchor": "top",
+            },
+            xaxis_title="fitted value",
+            yaxis_title="actual value",
         )
         fig.show()
 
@@ -33,17 +79,31 @@ class StatisticalTest:
 
 
 class LocalBaseModel:
-    def __init__(self, kernel_func: Callable, num_of_knots: int = 51):
+    def __init__(
+        self,
+        kernel_func: Callable,
+        bandwidth: float,
+        num_of_knots: int,
+        equal_space_knots: bool,
+    ):
         self.kernel_func = kernel_func
+        self.bandwidth = bandwidth
         self.num_of_knots = num_of_knots
+        self.equal_space_knots = equal_space_knots
         self.beta_hat = {}
         self.fitted = False
 
     def get_knots(self, X: np.ndarray):
-        return np.linspace(start=X.min(), stop=X.max(), num=self.num_of_knots)
+        return (
+            np.linspace(start=X.min(), stop=X.max(), num=self.num_of_knots)
+            if self.equal_space_knots
+            else np.sort(np.unique(X.squeeze()))
+        )
 
     def get_weight_matrix(self, X: np.ndarray, knot: float) -> np.ndarray:
-        return np.diag([self.kernel_func(x - knot) for x in X.squeeze()])
+        return np.diag(
+            [self.kernel_func(u=x - knot, h=self.bandwidth) for x in X.squeeze()]
+        )
 
     def _local_fit(
         self,
@@ -63,12 +123,33 @@ class LocalBaseModel:
 
     def _local_predict(
         self,
-        X: np.ndarray,
-        knot: float,
+        xi: int,
         to_model_matrix_func: Callable,
     ) -> np.ndarray | None:
-        model_matrix = to_model_matrix_func(X=X, knot=knot)
-        return model_matrix @ self.beta_hat[knot]
+        knots_mask = np.logical_and(
+            self.knots >= xi - self.bandwidth, self.knots <= xi + self.bandwidth
+        )
+        return (
+            np.concatenate(
+                [
+                    to_model_matrix_func(X=np.array([xi]), knot=knot)
+                    for knot in self.knots[knots_mask]
+                ],
+                axis=0,
+            )
+            * softmax(
+                np.array(
+                    [
+                        self.kernel_func(u=xi - knot, h=self.bandwidth)
+                        for knot in self.knots[knots_mask]
+                    ],
+                )
+            )[:, np.newaxis]
+            * np.concatenate(
+                [self.beta_hat[knot][np.newaxis, :] for knot in self.knots[knots_mask]],
+                axis=0,
+            )
+        ).sum()
 
     def _fit(
         self,
@@ -98,13 +179,12 @@ class LocalBaseModel:
             np.array(
                 [
                     self._local_predict(
-                        X=X,
-                        knot=knot,
+                        xi=xi,
                         to_model_matrix_func=to_model_matrix_func,
                     )
+                    for xi in X.squeeze()
                 ]
-                for knot in self.knots
-            ).sum(axis=1)
+            )
             if self.fitted
             else None
         )
@@ -117,7 +197,9 @@ class LinearBaseModel:
 
     def _fit(self, X: np.ndarray, y: np.ndarray, W: np.ndarray | None = None) -> None:
         if (X.ndim in (1, 2)) and X.shape[0] == y.shape[0]:
-            W = np.eye(X.shape[-1]) if W is None else W
+            self.W = (
+                W if W.ndim == 2 else np.eye(W) if W.ndim == 1 else np.eye(X.shape[-1])
+            )
             self.beta_hat = np.linalg.pinv(X.T @ W @ X) @ X.T @ W @ y
             self.fitted = True
         else:
