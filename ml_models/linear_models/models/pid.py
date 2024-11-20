@@ -27,10 +27,4 @@ class PIDController:
     def estimate_Kp(self, X: np.ndarray, y: np.ndarray) -> None:
         beta_hat = np.linalg.pinv(X.T @ X) @ X.T @ y
         self.learning_rate *= self.learning_rate_decay
-        return (
-            self.learning_rate
-            * np.maximum(
-                1 / (beta_hat + self.epsilon),
-                np.zeros_like(beta_hat),
-            )[1:, :]
-        )
+        return self.learning_rate / (beta_hat + self.epsilon)[1:, :]
