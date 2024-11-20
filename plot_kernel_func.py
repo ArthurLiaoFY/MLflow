@@ -85,4 +85,4 @@ fig.add_trace(
 )
 
 fig.update_layout(title_text="Kernel Functions", title_x=0.5)
-plotly.offline.plot(fig, filename="kernel_density.html")
+fig.show()
