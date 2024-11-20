@@ -1,14 +1,4 @@
 import numpy as np
-from sklearn.metrics import confusion_matrix
-
-# print(
-#     'Confusion Matrix : \n\n',
-#     pd.DataFrame(
-#         index=pd.MultiIndex.from_tuples((('Actual', 'Fail'), ('Actual', 'Pass'))),
-#         columns=pd.MultiIndex.from_tuples((('Predict', 'Fail'), ('Predict', 'Pass'))),
-#         data=confusion_matrix(y_true=valid_y, y_pred=pred_y),
-#     ),
-# )
 
 
 def root_mean_square_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
