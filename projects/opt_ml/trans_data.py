@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from models.common.transform_table_data import GetDummies, Standardize, ToType
+from ml_models.common.transform_table_data import GetDummies, Standardize, ToType
 
 
 class TransformData(GetDummies, Standardize, ToType):

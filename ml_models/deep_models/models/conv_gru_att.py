@@ -1,6 +1,6 @@
 import torch
 
-# from models.deep_models.utils.prepare_data import get_device
+# from ml_models.deep_models.utils.prepare_data import get_device
 
 
 class ConvolutionalGRUAttention(torch.nn.Module):

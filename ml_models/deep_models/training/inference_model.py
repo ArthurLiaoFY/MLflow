@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from models.deep_models.utils.prepare_data import get_device
+from ml_models.deep_models.utils.prepare_data import get_device
 
 
 def inference_model(
