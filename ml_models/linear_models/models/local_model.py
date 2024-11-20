@@ -13,9 +13,17 @@ from ml_models.linear_models.tools import (
 class LocalConstantModel(LocalBaseModel, StatisticalModel):
     def __init__(
         self,
+        bandwidth: int,
         kernel_func: Callable,
+        num_of_knots: int = 51,
+        equal_space_knots: bool = True,
     ):
-        super().__init__(kernel_func)
+        super().__init__(
+            kernel_func=kernel_func,
+            bandwidth=bandwidth,
+            num_of_knots=num_of_knots,
+            equal_space_knots=equal_space_knots,
+        )
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
         return self._fit(
@@ -34,9 +42,17 @@ class LocalConstantModel(LocalBaseModel, StatisticalModel):
 class LocalLinearModel(LocalBaseModel, StatisticalModel):
     def __init__(
         self,
+        bandwidth: int,
         kernel_func: Callable,
+        num_of_knots: int = 51,
+        equal_space_knots: bool = True,
     ):
-        super().__init__(kernel_func)
+        super().__init__(
+            kernel_func=kernel_func,
+            bandwidth=bandwidth,
+            num_of_knots=num_of_knots,
+            equal_space_knots=equal_space_knots,
+        )
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
         return self._fit(
@@ -56,9 +72,17 @@ class LocalPolynomialModel(LocalBaseModel, StatisticalModel):
 
     def __init__(
         self,
+        bandwidth: int,
         kernel_func: Callable,
+        num_of_knots: int = 51,
+        equal_space_knots: bool = True,
     ):
-        super().__init__(kernel_func)
+        super().__init__(
+            kernel_func=kernel_func,
+            bandwidth=bandwidth,
+            num_of_knots=num_of_knots,
+            equal_space_knots=equal_space_knots,
+        )
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
         return self._fit(
