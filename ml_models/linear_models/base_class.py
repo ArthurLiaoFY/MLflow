@@ -45,6 +45,7 @@ class StatisticalModel:
                 "xanchor": "center",
                 "yanchor": "top",
             },
+            template="plotly_white",
             xaxis_title="X",
             yaxis_title="Residuals",
         )
@@ -67,6 +68,7 @@ class StatisticalModel:
                 "xanchor": "center",
                 "yanchor": "top",
             },
+            template="plotly_white",
             xaxis_title="fitted value",
             yaxis_title="actual value",
         )
