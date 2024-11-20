@@ -5,7 +5,7 @@ from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, get_scheduler
 
-from models.deep_models.utils.check_device import get_device
+from ml_models.deep_models.utils.check_device import get_device
 from projects.mbti_personality.load_data import load_data
 from projects.mbti_personality.model import LanguageModel
 
@@ -54,15 +54,15 @@ lr_scheduler = get_scheduler(
 )
 import torch
 
-from models.deep_models.training.early_stopping import EarlyStopping
-from models.deep_models.training.evaluate import (
+from ml_models.deep_models.training.early_stopping import EarlyStopping
+from ml_models.deep_models.training.evaluate import (
     Accuracy,
     AreaUnderCurve,
     Precision,
     Recall,
 )
-from models.deep_models.training.loss import cross_entropy_loss
-from models.deep_models.training.train_model import finetune_llm_model
+from ml_models.deep_models.training.loss import cross_entropy_loss
+from ml_models.deep_models.training.train_model import finetune_llm_model
 
 finetune_llm_model(
     run_id="test_llm",
