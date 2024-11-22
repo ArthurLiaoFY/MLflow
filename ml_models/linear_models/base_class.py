@@ -231,6 +231,7 @@ class LinearBaseModel:
 
     @property
     def studentized_residuals(self) -> np.ndarray | None:
+        # to check normality
         return (
             self.residuals.squeeze()
             / np.sqrt(np.diag(np.eye(self.hat_matrix.shape[0]) - self.hat_matrix))
@@ -315,7 +316,7 @@ class LinearBaseModel:
                 x=list(range(self.n)),
                 y=self.studentized_residuals.squeeze(),
                 mode="markers",
-                name="Residual",
+                name="Studentized Residual",
                 marker=dict(color="blue"),
                 hovertemplate="Index: %{customdata}<br>Studentized Residual: %{y:.4f}<extra></extra>",
                 customdata=(
@@ -384,7 +385,7 @@ class LinearBaseModel:
                 x=list(range(self.n)),
                 y=self.cook_statistics.squeeze(),
                 mode="markers",
-                name="Leverage",
+                name="Cook Statistic",
                 marker=dict(color="blue"),
                 hovertemplate="Index: %{customdata}<br>Cook Statistic: %{y:.4f}<extra></extra>",
                 customdata=(
@@ -410,7 +411,7 @@ class LinearBaseModel:
                 x=list(range(self.n)),
                 y=self.jackknife_residuals.squeeze(),
                 mode="markers",
-                name="Leverage",
+                name="Jackknife Residual",
                 marker=dict(color="blue"),
                 hovertemplate="Index: %{customdata}<br>Jackknife Residual: %{y:.4f}<extra></extra>",
                 customdata=(
