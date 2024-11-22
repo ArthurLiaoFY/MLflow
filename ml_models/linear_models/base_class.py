@@ -197,15 +197,136 @@ class LinearBaseModel:
         self.add_intercept = add_intercept
         self.fitted = False
 
-    def _fit(self, X: np.ndarray, y: np.ndarray, W: np.ndarray | None = None) -> None:
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> None:
         if (X.ndim in (1, 2)) and X.shape[0] == y.shape[0]:
-            self.W = (
-                W if W.ndim == 2 else np.eye(W) if W.ndim == 1 else np.eye(X.shape[-1])
-            )
-            self.beta_hat = np.linalg.pinv(X.T @ W @ X) @ X.T @ W @ y
+            self.p = X.shape[-1]
+            self.n = X.shape[0]
+            self.deg_of_freedom = self.n - self.p
+            if np.linalg.matrix_rank(X) < min(X.shape):
+                print(
+                    "The matrix is not invertible. Consider checking the input features."
+                )
+            inverse = np.linalg.pinv(X.T @ X)
+            self.hat_matrix = X @ inverse @ X.T
+            self.beta_hat = inverse @ X.T @ y
             self.fitted = True
+
+            self.residuals = y - self._predict(X)
+            self.regression_sum_of_squares = np.sum(self.residuals**2)
+            self.sigma_hat = np.sqrt(
+                self.regression_sum_of_squares / self.deg_of_freedom
+            )
+            self.cov_mat = inverse * self.sigma_hat**2
+
         else:
             return None
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
-        return X @ self.beta_hat
+        return X @ self.beta_hat if self.fitted else None
+
+    @property
+    def leverages(self):
+        # focus on high leverages sample
+        return np.diag(self.hat_matrix) if self.fitted else None
+
+    @property
+    def cook_statistics(self):
+        # detecting influential sample
+        return (
+            (
+                self.residuals**2
+                * (
+                    np.diag(self.hat_matrix)
+                    / np.diag(np.eye(self.hat_matrix.shape[0]) - self.hat_matrix)
+                )
+                / self.p
+            )
+            if self.fitted
+            else None
+        )
+
+    @property
+    def studentized_residuals(self):
+        return (
+            self.residuals
+            / np.sqrt(np.diag(np.eye(self.hat_matrix.shape[0]) - self.hat_matrix))
+            / self.sigma_hat
+            if self.fitted
+            else None
+        )
+
+    @property
+    def jackknife_residuals(self):
+        return 0 if self.fitted else None
+
+    def plot_residual(self, index_name: str | None = None):
+        fig = go.Figure()
+
+        fig.add_trace(
+            go.Scatter(
+                x=list(range(self.n)),
+                y=self.residuals.squeeze(),
+                mode="markers",
+                name="Residual",
+                marker=dict(color="blue"),
+                hovertemplate="Index: %{customdata}<br>Residual: %{y:.4f}<extra></extra>",
+                customdata=(
+                    index_name if index_name is not None else list(range(self.n))
+                ),
+            )
+        )
+        fig.add_hline(
+            y=0.0,
+            line_color="black",
+        )
+        fig.add_hline(
+            y=self.sigma_hat,
+            line_dash="dash",
+            line_color="red",
+        )
+        fig.add_hline(
+            y=-self.sigma_hat,
+            line_dash="dash",
+            line_color="red",
+        )
+        fig.update_layout(
+            title="Residual Plot",
+            xaxis_title="",
+            yaxis_title="Residual",
+            template="plotly_white",
+        )
+
+        fig.show()
+
+    def plot_leverage(self, index_name: str | None = None):
+        fig = go.Figure()
+
+        fig.add_trace(
+            go.Scatter(
+                x=list(range(self.n)),
+                y=self.leverages.squeeze(),
+                mode="markers",
+                name="Leverage",
+                marker=dict(color="blue"),
+                hovertemplate="Index: %{customdata}<br>Leverage: %{y:.4f}<extra></extra>",
+                customdata=(
+                    index_name if index_name is not None else list(range(self.n))
+                ),
+            )
+        )
+        fig.add_hline(
+            y=2 * (self.p + 1) / self.n,
+            line_dash="dash",
+            line_color="red",
+        )
+        fig.update_layout(
+            title="Leverage Plot",
+            xaxis_title="",
+            yaxis_title="Leverage",
+            template="plotly_white",
+        )
+
+        fig.show()
+
+    def plot_normal_qq_plot(self):
+        pass
