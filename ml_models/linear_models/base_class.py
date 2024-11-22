@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 from ml_models.linear_models.kernel_functions import softmax
 from ml_models.linear_models.loss import root_mean_square_error
 from ml_models.linear_models.metrics import r_square
+from ml_models.statistical_distribution import normal_cdf
 
 
 class StatisticalModel:
@@ -230,6 +231,10 @@ class LinearBaseModel:
         return np.diag(self.hat_matrix) if self.fitted else None
 
     @property
+    def standardized_residuals(self) -> np.ndarray | None:
+        return self.residuals.squeeze() / self.sigma_hat if self.fitted else None
+
+    @property
     def studentized_residuals(self) -> np.ndarray | None:
         # to check normality
         return (
@@ -303,6 +308,45 @@ class LinearBaseModel:
             title="Residual Plot",
             xaxis_title="",
             yaxis_title="Residual",
+            template="plotly_white",
+        )
+
+        fig.show()
+
+    def plot_standardized_residual(self, index_name: str | None = None):
+        fig = go.Figure()
+
+        fig.add_trace(
+            go.Scatter(
+                x=list(range(self.n)),
+                y=self.standardized_residuals.squeeze(),
+                mode="markers",
+                name="Standardized Residual",
+                marker=dict(color="blue"),
+                hovertemplate="Index: %{customdata}<br>Standardized Residual: %{y:.4f}<extra></extra>",
+                customdata=(
+                    index_name if index_name is not None else list(range(self.n))
+                ),
+            )
+        )
+        fig.add_hline(
+            y=0.0,
+            line_color="black",
+        )
+        fig.add_hline(
+            y=1,
+            line_dash="dash",
+            line_color="red",
+        )
+        fig.add_hline(
+            y=-1,
+            line_dash="dash",
+            line_color="red",
+        )
+        fig.update_layout(
+            title="Standardized Residual Plot",
+            xaxis_title="",
+            yaxis_title="Standardized Residual",
             template="plotly_white",
         )
 
@@ -429,5 +473,36 @@ class LinearBaseModel:
 
         fig.show()
 
-    def plot_normal_qq_plot(self):
-        pass
+    # def plot_normal_qq_plot(self):
+    #     fig = go.Figure()
+
+    #     # 添加 Q-Q 点
+    #     fig.add_trace(
+    #         go.Scatter(
+    #             x=cdf_theoretical,
+    #             y=np.sort(self.residuals),
+    #             mode="markers",
+    #             name="Q-Q Points",
+    #             marker=dict(color="blue"),
+    #             hovertemplate="Theoretical: %{x:.4f}<br>Sample: %{y:.4f}<extra></extra>",
+    #         )
+    #     )
+
+    #     fig.add_trace(
+    #         go.Scatter(
+    #             x=cdf_theoretical,
+    #             y=fit_line,
+    #             mode="lines",
+    #             name="Fit Line",
+    #             line=dict(color="red", dash="dash"),
+    #         )
+    #     )
+
+    #     fig.update_layout(
+    #         title="Normal Q-Q Plot",
+    #         xaxis_title="Theoretical Quantiles",
+    #         yaxis_title="Sample Quantiles",
+    #         template="plotly_white",
+    #     )
+
+    #     fig.show()
