@@ -225,16 +225,26 @@ class LinearBaseModel:
         return X @ self.beta_hat if self.fitted else None
 
     @property
-    def leverages(self):
+    def leverages(self) -> np.ndarray | None:
         # focus on high leverages sample
         return np.diag(self.hat_matrix) if self.fitted else None
 
     @property
-    def cook_statistics(self):
+    def studentized_residuals(self) -> np.ndarray | None:
+        return (
+            self.residuals.squeeze()
+            / np.sqrt(np.diag(np.eye(self.hat_matrix.shape[0]) - self.hat_matrix))
+            / self.sigma_hat
+            if self.fitted
+            else None
+        )
+
+    @property
+    def cook_statistics(self) -> np.ndarray | None:
         # detecting influential sample
         return (
             (
-                self.residuals**2
+                self.studentized_residuals.squeeze() ** 2
                 * (
                     np.diag(self.hat_matrix)
                     / np.diag(np.eye(self.hat_matrix.shape[0]) - self.hat_matrix)
@@ -246,18 +256,17 @@ class LinearBaseModel:
         )
 
     @property
-    def studentized_residuals(self):
+    def jackknife_residuals(self) -> np.ndarray | None:
+        # detect outliers sample
         return (
-            self.residuals
-            / np.sqrt(np.diag(np.eye(self.hat_matrix.shape[0]) - self.hat_matrix))
-            / self.sigma_hat
+            self.studentized_residuals.squeeze()
+            * np.sqrt(
+                (self.n - self.p - 1)
+                / (self.n - self.p - self.studentized_residuals.squeeze() ** 2)
+            )
             if self.fitted
             else None
         )
-
-    @property
-    def jackknife_residuals(self):
-        return 0 if self.fitted else None
 
     def plot_residual(self, index_name: str | None = None):
         fig = go.Figure()
@@ -298,6 +307,45 @@ class LinearBaseModel:
 
         fig.show()
 
+    def plot_studentized_residual(self, index_name: str | None = None):
+        fig = go.Figure()
+
+        fig.add_trace(
+            go.Scatter(
+                x=list(range(self.n)),
+                y=self.studentized_residuals.squeeze(),
+                mode="markers",
+                name="Residual",
+                marker=dict(color="blue"),
+                hovertemplate="Index: %{customdata}<br>Studentized Residual: %{y:.4f}<extra></extra>",
+                customdata=(
+                    index_name if index_name is not None else list(range(self.n))
+                ),
+            )
+        )
+        fig.add_hline(
+            y=0.0,
+            line_color="black",
+        )
+        fig.add_hline(
+            y=1,
+            line_dash="dash",
+            line_color="red",
+        )
+        fig.add_hline(
+            y=-1,
+            line_dash="dash",
+            line_color="red",
+        )
+        fig.update_layout(
+            title="Studentized Residual Plot",
+            xaxis_title="",
+            yaxis_title="Studentized Residual",
+            template="plotly_white",
+        )
+
+        fig.show()
+
     def plot_leverage(self, index_name: str | None = None):
         fig = go.Figure()
 
@@ -315,7 +363,7 @@ class LinearBaseModel:
             )
         )
         fig.add_hline(
-            y=2 * (self.p + 1) / self.n,
+            y=2 * self.p / self.n,
             line_dash="dash",
             line_color="red",
         )
@@ -323,6 +371,58 @@ class LinearBaseModel:
             title="Leverage Plot",
             xaxis_title="",
             yaxis_title="Leverage",
+            template="plotly_white",
+        )
+
+        fig.show()
+
+    def plot_cook_statistics(self, index_name: str | None = None):
+        fig = go.Figure()
+
+        fig.add_trace(
+            go.Scatter(
+                x=list(range(self.n)),
+                y=self.cook_statistics.squeeze(),
+                mode="markers",
+                name="Leverage",
+                marker=dict(color="blue"),
+                hovertemplate="Index: %{customdata}<br>Cook Statistic: %{y:.4f}<extra></extra>",
+                customdata=(
+                    index_name if index_name is not None else list(range(self.n))
+                ),
+            )
+        )
+
+        fig.update_layout(
+            title="Cook Statistic Plot",
+            xaxis_title="",
+            yaxis_title="Cook Statistic",
+            template="plotly_white",
+        )
+
+        fig.show()
+
+    def plot_jackknife_residual(self, index_name: str | None = None):
+        fig = go.Figure()
+
+        fig.add_trace(
+            go.Scatter(
+                x=list(range(self.n)),
+                y=self.jackknife_residuals.squeeze(),
+                mode="markers",
+                name="Leverage",
+                marker=dict(color="blue"),
+                hovertemplate="Index: %{customdata}<br>Jackknife Residual: %{y:.4f}<extra></extra>",
+                customdata=(
+                    index_name if index_name is not None else list(range(self.n))
+                ),
+            )
+        )
+
+        fig.update_layout(
+            title="Jackknife Residual Plot",
+            xaxis_title="",
+            yaxis_title="Jackknife Residual",
             template="plotly_white",
         )
 
