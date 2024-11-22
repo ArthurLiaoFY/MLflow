@@ -15,13 +15,10 @@ class LinearModel(LinearBaseModel, StatisticalModel):
     def __init__(self, add_intercept: bool = True):
         super().__init__(add_intercept)
 
-    def fit(
-        self, X: np.ndarray, y: np.ndarray, W: np.ndarray | None = None
-    ) -> np.ndarray:
+    def fit(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
         return self._fit(
-            X=X,
+            X=to_model_matrix(X=X, add_intercept=self.add_intercept),
             y=y,
-            W=W,
         )
 
     def predict(self, X: np.ndarray) -> np.ndarray | None:
