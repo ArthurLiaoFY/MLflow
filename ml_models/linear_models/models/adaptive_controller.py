@@ -39,19 +39,19 @@ class PIDController:
         tau: float | None = None,
         dt: float = 1.0,
     ):
-        self.target_point = target_point
         self.Kp = Kp
         self.Ki = Ki
         self.Kd = Kd
         self.tau = tau
         self.dt = dt
+        self.reset_target_point(target_point=target_point)
 
-        self.prev_error = 0
-        self.integral = 0
-        self.prev_d = 0
 
     def reset_target_point(self, target_point: float):
         self.target_point = target_point
+        self.prev_error = 0
+        self.integral = 0
+        self.prev_d = 0
 
     def compute(self, y_new: float):
         error = self.target_point - y_new
