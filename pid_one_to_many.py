@@ -1,4 +1,6 @@
 # %%
+from itertools import product
+
 import matplotlib.pyplot as plt
 import numpy as np
 import plotly.graph_objects as go
@@ -7,10 +9,10 @@ from ml_models.linear_models.models.adaptive_controller import BetaController
 from ml_models.linear_models.tools import to_model_matrix
 
 target_point_1 = -30
-target_1_duration = 700
+target_1_duration = 1500
 target_point_2 = -40
-target_2_duration = 700
-sample_size = 100
+target_2_duration = 1500
+sample_size = 5
 seed = np.random.RandomState(1122)
 epsilon = 0.5
 fit_model_sample_size = 5000
@@ -25,7 +27,7 @@ bc = BetaController(target_point=target_point_1)
 
 # assume linear relationship
 def f(iv, time):
-    degradation = 0.0042 * time
+    degradation = 0.01 * time
 
     return (
         50
@@ -205,30 +207,45 @@ def plot_ctrl_trend(control_ovs):
     fig.show()
 
 
-historical_ivs = np.concatenate(
-    (
-        np.array([[35, 45]] * sample_size),
-        np.array([[35, 35]] * sample_size),
-        np.array([[35, 25]] * sample_size),
-        np.array([[25, 45]] * sample_size),
-        np.array([[25, 35]] * sample_size),
-        np.array([[25, 25]] * sample_size),
-        np.array([[15, 45]] * sample_size),
-        np.array([[15, 35]] * sample_size),
-        np.array([[15, 25]] * sample_size),
+historical_ivs = (
+    np.array(
+        list(
+            product(
+                *(
+                    np.repeat(np.linspace(lower, upper, 5), sample_size)
+                    for lower, upper in zip(lower_iv, upper_iv)
+                )
+            )
+        )
     )
-).reshape((sample_size * 9, 2))
+    .repeat(sample_size, axis=0)
+    .reshape(-1, 2)
+)
+
 seed.shuffle(historical_ivs)
 historical_ovs = np.array(
     [f(iv=iv, time=time) for time, iv in enumerate(historical_ivs)]
 )
 # %%
-plt.plot(historical_ivs[:, 0], historical_ivs[:, 1], "o")
-plt.show()
-plt.plot(historical_ivs[:, 0], historical_ovs, "o")
-plt.show()
-plt.plot(historical_ivs[:, 1], historical_ovs, "o")
-plt.show()
+fig = go.Figure()
+
+fig.add_trace(
+    go.Scatter(
+        x=historical_ivs[:, 0],
+        y=historical_ivs[:, 1],
+        mode="markers",
+        name="Experiment Points",
+        marker=dict(color="blue", size=5, opacity=0.7),
+    )
+)
+fig.update_layout(
+    title="Experiment Points",
+    xaxis_title="IV 1",
+    yaxis_title="IV 2",
+    template="plotly_white",
+)
+
+fig.show()
 # %%
 X = to_model_matrix(historical_ivs)
 print(np.linalg.pinv(X.T @ X) @ X.T @ historical_ovs)
@@ -327,4 +344,125 @@ while True:
 
 plot_ctrl_trend(non_control_ovs)
 plot_ctrl_trend(bc_control_ovs)
+# %%
+fig = go.Figure()
+
+x_min, x_max = 15, 35
+y_min, y_max = 25, 45
+z_min, z_max = np.min(bc_control_ovs), np.max(bc_control_ovs)
+
+
+vertices = [
+    [x_min, y_min, z_min],
+    [x_max, y_min, z_min],
+    [x_max, y_max, z_min],
+    [x_min, y_max, z_min],
+    [x_min, y_min, z_max],
+    [x_max, y_min, z_max],
+    [x_max, y_max, z_max],
+    [x_min, y_max, z_max],
+]
+
+i, j, k = zip(
+    (0, 1, 2),
+    (0, 2, 3),
+    (4, 5, 6),
+    (4, 6, 7),
+    (0, 1, 5),
+    (0, 5, 4),
+    (1, 2, 6),
+    (1, 6, 5),
+    (2, 3, 7),
+    (2, 7, 6),
+    (3, 0, 4),
+    (3, 4, 7),
+)
+inside_rect = (
+    (bc_control_ivs[:, 0] >= x_min)
+    & (bc_control_ivs[:, 0] <= x_max)
+    & (bc_control_ivs[:, 1] >= y_min)
+    & (bc_control_ivs[:, 1] <= y_max)
+)
+
+colors = np.where(inside_rect, "blue", "red")
+
+fig.add_trace(
+    go.Scatter3d(
+        x=bc_control_ivs[:, 0],
+        y=bc_control_ivs[:, 1],
+        z=bc_control_ovs.squeeze(),
+        mode="markers",
+        marker=dict(size=1, color=colors, opacity=0.8),
+        name="Data Points",
+    )
+)
+
+fig.add_trace(
+    go.Mesh3d(
+        x=[v[0] for v in vertices],
+        y=[v[1] for v in vertices],
+        z=[v[2] for v in vertices],
+        i=i,
+        j=j,
+        k=k,
+        opacity=0.1,
+        color="green",
+        name="Rectangle",
+    )
+)
+
+fig.update_layout(
+    title="3D Scatter Plot of Beta Controller",
+    scene=dict(
+        xaxis_title="IV 1",
+        yaxis_title="IV 2",
+        zaxis_title="OV",
+    ),
+    template="plotly_white",
+)
+
+fig.show()
+
+
+# %%
+print("[ Non Controller ] : ")
+print(
+    "mean : ",
+    (
+        non_control_ovs
+        - np.array(
+            [target_point_1] * target_1_duration + [target_point_2] * target_2_duration
+        )
+    ).mean(),
+)
+print(
+    "std : ",
+    (
+        non_control_ovs
+        - np.array(
+            [target_point_1] * target_1_duration + [target_point_2] * target_2_duration
+        )
+    ).std(),
+)
+
+
+print("[ Beta Controller ] : ")
+print(
+    "mean : ",
+    (
+        bc_control_ovs
+        - np.array(
+            [target_point_1] * target_1_duration + [target_point_2] * target_2_duration
+        )
+    ).mean(),
+)
+print(
+    "std : ",
+    (
+        bc_control_ovs
+        - np.array(
+            [target_point_1] * target_1_duration + [target_point_2] * target_2_duration
+        )
+    ).std(),
+)
 # %%
