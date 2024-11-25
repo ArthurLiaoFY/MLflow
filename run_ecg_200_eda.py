@@ -43,10 +43,8 @@ k_medoids_test_y = kmedoids.fasterpam(
 )
 
 
-fig = make_subplots(
-    rows=1,
-    cols=1,
-)
+fig = go.Figure()
+
 for i in range(df.shape[0]):
     fig.add_trace(
         go.Scatter(
