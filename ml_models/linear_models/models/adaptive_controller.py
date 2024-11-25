@@ -17,7 +17,12 @@ class BetaController:
         self.target_point = target_point
 
     def compute(self, y_new: float):
-        return self.Kp * (self.target_point - y_new)
+        return (
+            self.Kp
+            * (self.target_point - y_new)
+            * np.abs(self.Kp).squeeze()
+            / np.abs(self.Kp).sum()
+        )
 
     def estimate_Kp(self, X: np.ndarray, y: np.ndarray) -> None:
         beta_hat = np.linalg.pinv(X.T @ X) @ X.T @ y
