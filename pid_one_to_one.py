@@ -17,7 +17,7 @@ sample_size = 50
 seed = np.random.RandomState(1122)
 epsilon = 0.5
 
-upper_input_value = 45
+upper_input_value = 70
 init_input_value = 40
 lower_input_value = 35
 
@@ -361,6 +361,24 @@ fig.add_trace(
         marker=dict(color="blue", opacity=0.6),
     )
 )
+
+fig.add_vline(
+    x=lower_input_value,
+    line_dash="dash",
+    line_color="red",
+    annotation_text=f"Upper Input Value = {lower_input_value}",
+    annotation_position="top left",
+)
+
+fig.add_vline(
+    x=upper_input_value,
+    line_dash="dash",
+    line_color="red",
+    annotation_text=f"Upper Input Value = {upper_input_value}",
+    annotation_position="top left",
+)
+
+
 fig.update_layout(
     title="Scatter Plot of different controller",
     xaxis_title="IVs",
