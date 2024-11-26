@@ -161,18 +161,6 @@ fig = make_subplots(
     ),
 )
 
-# fig.add_trace(
-#     go.Scatter(
-#         x=pca.components_[0],
-#         y=pca.components_[1],
-#         mode="markers",
-#         marker=dict(color=k_colors, size=8, opacity=0.7),
-#         name="PCA",
-#     ),
-#     row=1,
-#     col=1,
-# )
-
 fig.add_trace(
     go.Scatter(
         x=tsne_projection[k_medoids_train_y.labels == 0, 0],
@@ -277,21 +265,6 @@ fig = make_subplots(
 
 fig.add_trace(
     go.Scatter(
-        x=pca.components_[0],
-        y=pca.components_[1],
-        mode="markers",
-        marker=dict(
-            color=k_colors,
-            size=8,
-            opacity=0.7,
-        ),
-        showlegend=False,
-    ),
-    row=1,
-    col=2,
-)
-fig.add_trace(
-    go.Scatter(
         x=pca.components_.T[k_medoids_train_y.labels == 0, 0],
         y=pca.components_.T[k_medoids_train_y.labels == 0, 1],
         mode="markers",
@@ -362,6 +335,21 @@ fig.add_trace(
     col=1,
 )
 
+fig.add_trace(
+    go.Scatter(
+        x=pca.components_[0],
+        y=pca.components_[1],
+        mode="markers",
+        marker=dict(
+            color=k_colors,
+            size=8,
+            opacity=0.7,
+        ),
+        showlegend=False,
+    ),
+    row=1,
+    col=2,
+)
 fig.update_layout(
     title="PCA (2D) with Mahalanobis Distance base Outlier Identification",
     xaxis_title="PCA Component 1",
