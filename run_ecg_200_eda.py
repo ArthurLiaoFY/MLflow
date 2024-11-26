@@ -11,6 +11,8 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.metrics.pairwise import euclidean_distances
 
+from ml_models.linear_models.distance import mahalanobis_distance
+
 # %%
 
 config = ConfigParser()
@@ -55,8 +57,6 @@ for i in range(df.shape[0]):
             opacity=0.3,
             showlegend=False,
         ),
-        row=1,
-        col=1,
     )
 
 
@@ -155,20 +155,90 @@ fig = make_subplots(
     rows=1,
     cols=2,
     shared_yaxes=False,
-    subplot_titles=("PCA (2D with K-medoids)", "T-SNE (2D with K-medoids Labels)"),
+    subplot_titles=(
+        "Outlier Detection group by K-medoids",
+        "T-SNE with K-medoids Labels",
+    ),
 )
+
+# fig.add_trace(
+#     go.Scatter(
+#         x=pca.components_[0],
+#         y=pca.components_[1],
+#         mode="markers",
+#         marker=dict(color=k_colors, size=8, opacity=0.7),
+#         name="PCA",
+#     ),
+#     row=1,
+#     col=1,
+# )
 
 fig.add_trace(
     go.Scatter(
-        x=pca.components_[0],
-        y=pca.components_[1],
+        x=tsne_projection[k_medoids_train_y.labels == 0, 0],
+        y=tsne_projection[k_medoids_train_y.labels == 0, 1],
         mode="markers",
-        marker=dict(color=k_colors, size=8, opacity=0.7),
-        name="PCA",
+        marker=dict(
+            color=mahalanobis_distance(tsne_projection[k_medoids_train_y.labels == 0]),
+            size=8,
+            opacity=0.7,
+            colorbar=dict(
+                title="Mahalanobis Distance",
+                titleside="right",
+            ),
+            colorscale="reds",
+            showscale=True,
+        ),
+        showlegend=False,
     ),
     row=1,
     col=1,
 )
+
+fig.add_trace(
+    go.Scatter(
+        x=tsne_projection[k_medoids_train_y.labels == 1, 0],
+        y=tsne_projection[k_medoids_train_y.labels == 1, 1],
+        mode="markers",
+        marker=dict(
+            color=mahalanobis_distance(tsne_projection[k_medoids_train_y.labels == 1]),
+            size=8,
+            opacity=0.7,
+            colorbar=dict(
+                title="Mahalanobis Distance",
+                titleside="right",
+            ),
+            colorscale="reds",
+            showscale=False,
+        ),
+        showlegend=False,
+    ),
+    row=1,
+    col=1,
+)
+
+fig.add_trace(
+    go.Scatter(
+        x=tsne_projection[k_medoids_train_y.labels == 2, 0],
+        y=tsne_projection[k_medoids_train_y.labels == 2, 1],
+        mode="markers",
+        marker=dict(
+            color=mahalanobis_distance(tsne_projection[k_medoids_train_y.labels == 2]),
+            size=8,
+            opacity=0.7,
+            colorbar=dict(
+                title="Mahalanobis Distance",
+                titleside="right",
+            ),
+            colorscale="reds",
+            showscale=False,
+        ),
+        showlegend=False,
+    ),
+    row=1,
+    col=1,
+)
+
 
 fig.add_trace(
     go.Scatter(
@@ -183,15 +253,123 @@ fig.add_trace(
 )
 
 fig.update_layout(
-    title="Comparison of PCA and T-SNE (2D with K-medoids Labels)",
+    title="T-SNE (2D) with Mahalanobis Distance base Outlier Identification",
     template="plotly_white",
     showlegend=False,
 )
 
-fig.update_xaxes(title_text="PCA - Component 1", row=1, col=1)
-fig.update_yaxes(title_text="PCA - Component 2", row=1, col=1)
+fig.update_xaxes(title_text="T-SNE - Dimension 1", row=1, col=1)
+fig.update_yaxes(title_text="T-SNE - Dimension 2", row=1, col=1)
 fig.update_xaxes(title_text="T-SNE - Dimension 1", row=1, col=2)
 fig.update_yaxes(title_text="T-SNE - Dimension 2", row=1, col=2)
 
 fig.show()
+# %%
+fig = make_subplots(
+    rows=1,
+    cols=2,
+    shared_yaxes=False,
+    subplot_titles=(
+        "Outlier Detection group by K-medoids",
+        "PCA with K-medoids Labels",
+    ),
+)
+
+fig.add_trace(
+    go.Scatter(
+        x=pca.components_[0],
+        y=pca.components_[1],
+        mode="markers",
+        marker=dict(
+            color=k_colors,
+            size=8,
+            opacity=0.7,
+        ),
+        showlegend=False,
+    ),
+    row=1,
+    col=2,
+)
+fig.add_trace(
+    go.Scatter(
+        x=pca.components_.T[k_medoids_train_y.labels == 0, 0],
+        y=pca.components_.T[k_medoids_train_y.labels == 0, 1],
+        mode="markers",
+        marker=dict(
+            color=mahalanobis_distance(
+                pca.components_.T[k_medoids_train_y.labels == 0]
+            ),
+            size=8,
+            opacity=0.7,
+            colorbar=dict(
+                title="Mahalanobis Distance",
+                titleside="right",
+            ),
+            colorscale="reds",
+            showscale=True,
+        ),
+        showlegend=False,
+    ),
+    row=1,
+    col=1,
+)
+
+fig.add_trace(
+    go.Scatter(
+        x=pca.components_.T[k_medoids_train_y.labels == 1, 0],
+        y=pca.components_.T[k_medoids_train_y.labels == 1, 1],
+        mode="markers",
+        marker=dict(
+            color=mahalanobis_distance(
+                pca.components_.T[k_medoids_train_y.labels == 1]
+            ),
+            size=8,
+            opacity=0.7,
+            colorbar=dict(
+                title="Mahalanobis Distance",
+                titleside="right",
+            ),
+            colorscale="reds",
+            showscale=False,
+        ),
+        showlegend=False,
+    ),
+    row=1,
+    col=1,
+)
+
+fig.add_trace(
+    go.Scatter(
+        x=pca.components_.T[k_medoids_train_y.labels == 2, 0],
+        y=pca.components_.T[k_medoids_train_y.labels == 2, 1],
+        mode="markers",
+        marker=dict(
+            color=mahalanobis_distance(
+                pca.components_.T[k_medoids_train_y.labels == 2]
+            ),
+            size=8,
+            opacity=0.7,
+            colorbar=dict(
+                title="Mahalanobis Distance",
+                titleside="right",
+            ),
+            colorscale="reds",
+            showscale=False,
+        ),
+        showlegend=False,
+    ),
+    row=1,
+    col=1,
+)
+
+fig.update_layout(
+    title="PCA (2D) with Mahalanobis Distance base Outlier Identification",
+    xaxis_title="PCA Component 1",
+    yaxis_title="PCA Component 2",
+    template="plotly_white",
+)
+# %%
+tsne_projection[k_medoids_train_y.labels == 1].mean(axis=0)
+# %%
+tsne_projection[k_medoids_train_y.labels == 2].mean(axis=0)
 # %%
