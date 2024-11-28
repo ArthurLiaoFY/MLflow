@@ -1,20 +1,22 @@
 # %%
-import os
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 from configparser import ConfigParser
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-from projects.opt_ml.estimate_surface import EstimateSurface
-from projects.opt_ml.load_data import load_presale_data
-from projects.opt_ml.optimize_response import optimize_f_hat
-from projects.opt_ml.plot_fns import plot_obj_surface
-from projects.opt_ml.trans_data import TransformData
+from estimate_surface import EstimateSurface
+from load_data import load_presale_data
+from optimize_response import optimize_f_hat
+from plot_fns import plot_obj_surface
+from trans_data import TransformData
 
 # load config
 config = ConfigParser()
-config.read("projects/opt_ml/opt_ml.ini")
+config.read("./opt_ml.ini")
 config = config["taiwan_housing"]
 
 trans_cls = TransformData(
@@ -33,10 +35,10 @@ sm = EstimateSurface(
     in_feature=trans_df.shape[-1] - 1,
     **config,
 )
-sm.fit_surface(
-    X=trans_df[:, :-1],
-    y=trans_df[:, -1],
-)
+# sm.fit_surface(
+#     X=trans_df[:, :-1],
+#     y=trans_df[:, -1],
+# )
 
 # %%
 offset = {

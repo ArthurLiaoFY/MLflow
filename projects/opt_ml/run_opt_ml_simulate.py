@@ -1,15 +1,19 @@
 # %%
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+
 from configparser import ConfigParser
 
 import numpy as np
-
-from projects.opt_ml.estimate_surface import EstimateSurface
-from projects.opt_ml.optimize_response import optimize_f_hat
-from projects.opt_ml.plot_fns import plot_obj_surface
-from projects.opt_ml.simulate_data import SimulateData
+from estimate_surface import EstimateSurface
+from optimize_response import optimize_f_hat
+from plot_fns import plot_obj_surface
+from simulate_data import SimulateData
 
 config = ConfigParser()
-config.read("projects/opt_ml/opt_ml.ini")
+config.read("./opt_ml.ini")
 config = config["simulate"]
 
 
