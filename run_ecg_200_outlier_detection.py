@@ -1,50 +1,41 @@
 # %%
-from configparser import ConfigParser
+
 
 import kmedoids
-import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from scipy.io import arff
-from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.metrics.pairwise import euclidean_distances
 
-from ml_models.linear_models.distance import mahalanobis_distance
+
+from ml_models.linear_models.distance import  mahalanobis_distance
 
 # %%
 
-config = ConfigParser()
-config.read("projects/ecg_200/ecg_200.ini")
+df = (
+    pd.concat(
+        objs=(
+            pd.DataFrame(
+                arff.loadarff(
+                    "./data/ECG200/ECG200_TRAIN.arff",
+                )[0]
+            ),
+            pd.DataFrame(
+                arff.loadarff(
+                    "./data/ECG200/ECG200_TEST.arff",
+                )[0]
+            ),
+        ),
+        axis=0,
+    )
+    .drop(columns=["target"])
+    .reset_index(drop=True)
+)
+
 # %%
-
-df = pd.concat(
-    objs=(
-        pd.DataFrame(
-            arff.loadarff(
-                "./data/ECG200/ECG200_TRAIN.arff",
-            )[0]
-        ),
-        pd.DataFrame(
-            arff.loadarff(
-                "./data/ECG200/ECG200_TEST.arff",
-            )[0]
-        ),
-    ),
-    axis=0,
-).drop(columns=["target"])
-
-k_medoids_train_y = kmedoids.fasterpam(
-    diss=euclidean_distances(df),
-    medoids=3,
-)
-k_medoids_test_y = kmedoids.fasterpam(
-    diss=euclidean_distances(df),
-    medoids=3,
-)
-
-
 fig = go.Figure()
 
 for i in range(df.shape[0]):
@@ -76,47 +67,29 @@ fig.update_yaxes(title_text="Values")
 fig.show()
 
 # %%
+medoids = kmedoids.fasterpam(
+    diss=euclidean_distances(df),
+    medoids=3,
+    random_state=1122,
+)
+color_map = {
+    "0": "red",
+    "1": "blue",
+    "2": "green",
+}
+# %%
 fig = go.Figure()
-cnt_red = 0
-cnt_blue = 0
-cnt_green = 0
 for i in range(df.shape[0]):
-    if k_medoids_train_y.labels[i] == 0:
-        cnt_red += 1
-        fig.add_trace(
-            go.Scatter(
-                x=df.columns,
-                y=df.iloc[i, :],
-                mode="lines",
-                line=dict(color="red", width=1),
-                opacity=0.3,
-                showlegend=False,
-            )
+    fig.add_trace(
+        go.Scatter(
+            x=df.columns,
+            y=df.iloc[i, :],
+            mode="lines",
+            line=dict(color=color_map.get(str(medoids.labels[i])), width=1),
+            opacity=0.3,
+            showlegend=False,
         )
-    elif k_medoids_train_y.labels[i] == 1:
-        cnt_green += 1
-        fig.add_trace(
-            go.Scatter(
-                x=df.columns,
-                y=df.iloc[i, :],
-                mode="lines",
-                line=dict(color="green", width=1),
-                opacity=0.3,
-                showlegend=False,
-            )
-        )
-    else:
-        cnt_blue += 1
-        fig.add_trace(
-            go.Scatter(
-                x=df.columns,
-                y=df.iloc[i, :],
-                mode="lines",
-                line=dict(color="blue", width=1),
-                opacity=0.3,
-                showlegend=False,
-            )
-        )
+    )
 
 fig.update_layout(
     title_text=f"ECG Trend Data with K-medoids",
@@ -132,7 +105,7 @@ fig.update_xaxes(
 fig.update_yaxes(title_text="Values")
 fig.show()
 # %%
-pca = PCA(n_components=2).fit(df.T)
+# pca = PCA(n_components=2).fit(df.T)
 tsne_projection = TSNE(
     n_components=2,
     max_iter=500,
@@ -141,15 +114,27 @@ tsne_projection = TSNE(
     random_state=1122,
 ).fit_transform(
     df,
-    k_medoids_train_y.labels,
+    medoids.labels,
 )
 # %%
+group_mahalanobis_distance = {
+    f"{label}": np.max(
+        np.array(
+            [
+                mahalanobis_distance(
+                    df.iloc[medoids.labels == label, col].to_numpy()[:, np.newaxis]
+                )
+                for col in range(df.shape[-1])
+            ]
+        ),
+        axis=0,
+    )
+    for label in medoids.labels
+}
 
 
-k_colors = [
-    "red" if result == 0 else "blue" if result == 1 else "green"
-    for result in k_medoids_train_y.labels
-]
+# %%
+
 
 fig = make_subplots(
     rows=1,
@@ -160,72 +145,28 @@ fig = make_subplots(
         "T-SNE with K-medoids Labels",
     ),
 )
-
-fig.add_trace(
-    go.Scatter(
-        x=tsne_projection[k_medoids_train_y.labels == 0, 0],
-        y=tsne_projection[k_medoids_train_y.labels == 0, 1],
-        mode="markers",
-        marker=dict(
-            color=mahalanobis_distance(tsne_projection[k_medoids_train_y.labels == 0]),
-            size=8,
-            opacity=0.7,
-            colorbar=dict(
-                title="Mahalanobis Distance",
-                titleside="right",
+for label in np.unique(medoids.labels):
+    fig.add_trace(
+        go.Scatter(
+            x=tsne_projection[medoids.labels == label, 0],
+            y=tsne_projection[medoids.labels == label, 1],
+            mode="markers",
+            marker=dict(
+                color=group_mahalanobis_distance.get(str(label)),
+                size=8,
+                opacity=0.7,
+                colorbar=dict(
+                    title="Mahalanobis Distance",
+                    titleside="right",
+                ),
+                colorscale="reds",
+                showscale=True,
             ),
-            colorscale="reds",
-            showscale=True,
+            showlegend=False,
         ),
-        showlegend=False,
-    ),
-    row=1,
-    col=1,
-)
-
-fig.add_trace(
-    go.Scatter(
-        x=tsne_projection[k_medoids_train_y.labels == 1, 0],
-        y=tsne_projection[k_medoids_train_y.labels == 1, 1],
-        mode="markers",
-        marker=dict(
-            color=mahalanobis_distance(tsne_projection[k_medoids_train_y.labels == 1]),
-            size=8,
-            opacity=0.7,
-            colorbar=dict(
-                title="Mahalanobis Distance",
-                titleside="right",
-            ),
-            colorscale="reds",
-            showscale=False,
-        ),
-        showlegend=False,
-    ),
-    row=1,
-    col=1,
-)
-
-fig.add_trace(
-    go.Scatter(
-        x=tsne_projection[k_medoids_train_y.labels == 2, 0],
-        y=tsne_projection[k_medoids_train_y.labels == 2, 1],
-        mode="markers",
-        marker=dict(
-            color=mahalanobis_distance(tsne_projection[k_medoids_train_y.labels == 2]),
-            size=8,
-            opacity=0.7,
-            colorbar=dict(
-                title="Mahalanobis Distance",
-                titleside="right",
-            ),
-            colorscale="reds",
-            showscale=False,
-        ),
-        showlegend=False,
-    ),
-    row=1,
-    col=1,
-)
+        row=1,
+        col=1,
+    )
 
 
 fig.add_trace(
@@ -233,7 +174,11 @@ fig.add_trace(
         x=tsne_projection.T[0],
         y=tsne_projection.T[1],
         mode="markers",
-        marker=dict(color=k_colors, size=8, opacity=0.7),
+        marker=dict(
+            color=[color_map.get(str(result)) for result in medoids.labels],
+            size=8,
+            opacity=0.7,
+        ),
         name="T-SNE",
     ),
     row=1,
@@ -252,112 +197,136 @@ fig.update_xaxes(title_text="T-SNE - Dimension 1", row=1, col=2)
 fig.update_yaxes(title_text="T-SNE - Dimension 2", row=1, col=2)
 
 fig.show()
+
+# %%
+
+fig = go.Figure()
+
+for label in np.unique(medoids.labels):
+    fig.add_trace(
+        go.Histogram(
+            x=group_mahalanobis_distance.get(str(label)),
+            nbinsx=30,
+            marker=dict(
+                color=color_map.get(str(label)), line=dict(width=1, color="black")
+            ),
+            opacity=0.7,
+            name=f"Group {str(label)}",
+        )
+    )
+
+
+fig.update_layout(
+    title="Histogram of Mahalanobis Distances (t-SNE)",
+    xaxis_title="Mahalanobis Distance",
+    yaxis_title="Frequency",
+    template="plotly_white",
+    showlegend=False,
+)
+
+fig.update_layout(barmode="stack")
+fig.show()
+
+# %%
+
+
+# %%
+group_mahalanobis_distance_threshold = {
+    "0": 10,
+    "1": 5,
+    "2": 10,
+}
+outlier_idx = [
+    idx
+    for label in np.unique(medoids.labels)
+    for idx in (
+        df.loc[medoids.labels == label, :].loc[
+            group_mahalanobis_distance.get(str(label))
+            >= group_mahalanobis_distance_threshold.get(str(label)),
+            :,
+        ]
+    ).index.to_list()
+]
+
 # %%
 fig = make_subplots(
     rows=1,
-    cols=2,
-    shared_yaxes=False,
-    subplot_titles=(
-        "Outlier Detection group by K-medoids",
-        "PCA with K-medoids Labels",
-    ),
+    cols=3,
+    shared_yaxes=True,
+    subplot_titles=["Label 0", "Label 1", "Label 2"],
+    horizontal_spacing=0.1,
 )
 
-fig.add_trace(
-    go.Scatter(
-        x=pca.components_.T[k_medoids_train_y.labels == 0, 0],
-        y=pca.components_.T[k_medoids_train_y.labels == 0, 1],
-        mode="markers",
-        marker=dict(
-            color=mahalanobis_distance(
-                pca.components_.T[k_medoids_train_y.labels == 0]
-            ),
-            size=8,
-            opacity=0.7,
-            colorbar=dict(
-                title="Mahalanobis Distance",
-                titleside="right",
-            ),
-            colorscale="reds",
-            showscale=True,
-        ),
-        showlegend=False,
-    ),
-    row=1,
-    col=1,
-)
+for i in range(df.shape[0]):
+    width = 4 if i in outlier_idx else 2
+    opacity = 1 if i in outlier_idx else 0.3
+    to_black = True if i in outlier_idx else False
 
-fig.add_trace(
-    go.Scatter(
-        x=pca.components_.T[k_medoids_train_y.labels == 1, 0],
-        y=pca.components_.T[k_medoids_train_y.labels == 1, 1],
-        mode="markers",
-        marker=dict(
-            color=mahalanobis_distance(
-                pca.components_.T[k_medoids_train_y.labels == 1]
+    fig.add_trace(
+        go.Scatter(
+            x=list(range(df.shape[1])),
+            y=df.loc[i, :],
+            mode="lines",
+            line=dict(
+                color=(
+                    color_map.get(str(medoids.labels[i])) if not to_black else "black"
+                ),
+                width=width,
             ),
-            size=8,
-            opacity=0.7,
-            colorbar=dict(
-                title="Mahalanobis Distance",
-                titleside="right",
-            ),
-            colorscale="reds",
-            showscale=False,
+            opacity=opacity,
+            showlegend=False,
         ),
-        showlegend=False,
-    ),
-    row=1,
-    col=1,
-)
+        row=1,
+        col=int(medoids.labels[i] + 1),
+    )
 
-fig.add_trace(
-    go.Scatter(
-        x=pca.components_.T[k_medoids_train_y.labels == 2, 0],
-        y=pca.components_.T[k_medoids_train_y.labels == 2, 1],
-        mode="markers",
-        marker=dict(
-            color=mahalanobis_distance(
-                pca.components_.T[k_medoids_train_y.labels == 2]
-            ),
-            size=8,
-            opacity=0.7,
-            colorbar=dict(
-                title="Mahalanobis Distance",
-                titleside="right",
-            ),
-            colorscale="reds",
-            showscale=False,
-        ),
-        showlegend=False,
-    ),
-    row=1,
-    col=1,
-)
 
-fig.add_trace(
-    go.Scatter(
-        x=pca.components_[0],
-        y=pca.components_[1],
-        mode="markers",
-        marker=dict(
-            color=k_colors,
-            size=8,
-            opacity=0.7,
-        ),
-        showlegend=False,
-    ),
-    row=1,
-    col=2,
-)
 fig.update_layout(
-    title="PCA (2D) with Mahalanobis Distance base Outlier Identification",
-    xaxis_title="PCA Component 1",
-    yaxis_title="PCA Component 2",
+    title_text=f"ECG Trend Data with Outliers Highlighted",
+    showlegend=False,
     template="plotly_white",
 )
+
+fig.update_xaxes(
+    title_text="Features",
+    tickangle=45,
+    showticklabels=False,
+)
+fig.update_yaxes(title_text="Values", row=1, col=1)
+
+fig.show()
 # %%
-tsne_projection[k_medoids_train_y.labels == 1].mean(axis=0)
-# %%
-tsne_projection[k_medoids_train_y.labels == 2].mean(axis=0)
+fig = go.Figure()
+
+for i in df.loc[~df.index.isin(outlier_idx), :].index:
+    fig.add_trace(
+        go.Scatter(
+            x=list(range(df.shape[1])),
+            y=df.loc[i, :],
+            mode="lines",
+            line=dict(
+                color="blue",
+                width=1,
+            ),
+            opacity=0.3,
+            showlegend=False,
+        )
+    )
+
+
+fig.update_layout(
+    title_text=f"ECG Trend Data with Outliers filtered",
+    showlegend=False,
+    template="plotly_white",
+)
+
+fig.update_xaxes(
+    title_text="Features",
+    tickangle=45,
+    showticklabels=False,
+)
+fig.update_yaxes(title_text="Values")
+
+fig.show()
+
 # %%
