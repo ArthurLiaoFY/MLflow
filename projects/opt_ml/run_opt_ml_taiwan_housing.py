@@ -35,10 +35,10 @@ sm = EstimateSurface(
     in_feature=trans_df.shape[-1] - 1,
     **config,
 )
-# sm.fit_surface(
-#     X=trans_df[:, :-1],
-#     y=trans_df[:, -1],
-# )
+sm.fit_surface(
+    X=trans_df[:, :-1],
+    y=trans_df[:, -1],
+)
 
 # %%
 offset = {
