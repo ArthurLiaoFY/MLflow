@@ -33,6 +33,7 @@ def f1(x1, x2):
 ![Data Logo](./logo-xs.svg)
 
 後將我們的方法應用於實際資料，該資料取自[內政部不動產交易實價查詢服務網](https://plvr.land.moi.gov.tw/DownloadOpenData)，取2024年第二季與第三季的預售屋成交資料進行模型 $\hat{f}(x)$ 建置，並透過 Differential evolution 最佳化。
+![Descent Plot](./housing.gif)
 
 
 ## 使用方法
