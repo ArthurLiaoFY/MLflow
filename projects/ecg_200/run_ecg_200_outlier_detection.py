@@ -1,10 +1,8 @@
 # %%
-
-import os
 import sys
+from pathlib import Path
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
-
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 import kmedoids
 import numpy as np
@@ -42,11 +40,11 @@ df = (
 # %%
 fig = go.Figure()
 
-for i in range(df.shape[0]):
+for row_idx in range(df.shape[0]):
     fig.add_trace(
         go.Scatter(
             x=df.columns,
-            y=df.iloc[i, :],
+            y=df.iloc[row_idx, :],
             mode="lines",
             line=dict(color="blue", width=1),
             opacity=0.3,
@@ -83,13 +81,13 @@ color_map = {
 }
 # %%
 fig = go.Figure()
-for i in range(df.shape[0]):
+for row_idx in range(df.shape[0]):
     fig.add_trace(
         go.Scatter(
             x=df.columns,
-            y=df.iloc[i, :],
+            y=df.iloc[row_idx, :],
             mode="lines",
-            line=dict(color=color_map.get(str(medoids.labels[i])), width=1),
+            line=dict(color=color_map.get(str(medoids.labels[row_idx])), width=1),
             opacity=0.3,
             showlegend=False,
         )
@@ -261,19 +259,21 @@ fig = make_subplots(
     horizontal_spacing=0.1,
 )
 
-for i in range(df.shape[0]):
-    width = 4 if i in outlier_idx else 2
-    opacity = 1 if i in outlier_idx else 0.3
-    to_black = True if i in outlier_idx else False
+for row_idx in range(df.shape[0]):
+    width = 4 if row_idx in outlier_idx else 2
+    opacity = 1 if row_idx in outlier_idx else 0.3
+    to_black = True if row_idx in outlier_idx else False
 
     fig.add_trace(
         go.Scatter(
             x=list(range(df.shape[1])),
-            y=df.loc[i, :],
+            y=df.loc[row_idx, :],
             mode="lines",
             line=dict(
                 color=(
-                    color_map.get(str(medoids.labels[i])) if not to_black else "black"
+                    color_map.get(str(medoids.labels[row_idx]))
+                    if not to_black
+                    else "black"
                 ),
                 width=width,
             ),
@@ -281,7 +281,7 @@ for i in range(df.shape[0]):
             showlegend=False,
         ),
         row=1,
-        col=int(medoids.labels[i] + 1),
+        col=int(medoids.labels[row_idx] + 1),
     )
 
 
@@ -302,14 +302,19 @@ fig.show()
 # %%
 fig = go.Figure()
 
-for i in df.loc[~df.index.isin(outlier_idx), :].index:
+for row_idx, cluster_label in zip(
+    df.loc[~df.index.isin(outlier_idx), :].index,
+    medoids.labels[
+        [idx for idx in range(len(medoids.labels)) if idx not in outlier_idx]
+    ],
+):
     fig.add_trace(
         go.Scatter(
             x=list(range(df.shape[1])),
-            y=df.loc[i, :],
+            y=df.loc[row_idx, :],
             mode="lines",
             line=dict(
-                color="blue",
+                color=color_map.get(str(cluster_label)),
                 width=1,
             ),
             opacity=0.3,
