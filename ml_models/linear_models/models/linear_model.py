@@ -1,8 +1,9 @@
-from typing import Callable
+# from typing import Callable
 
 # from scipy.stats import f, t
 import numpy as np
 
+from ml_models.descriptive_statistic import sample_covariance, sample_variance
 from ml_models.linear_models.base_class import (
     LinearBaseModel,
     StatisticalModel,
@@ -27,6 +28,30 @@ class LinearModel(LinearBaseModel, StatisticalModel):
         )
 
 
+class CanonicalCorrelation:
+    def __init__(self):
+        pass
+
+    def fit(self, X1: np.ndarray, X2: np.ndarray):
+        S_11_inv = np.linalg.pinv(sample_variance(X1))
+        S_12 = sample_covariance(X1, X2)
+        S_22_inv = np.linalg.pinv(sample_variance(X2))
+
+        S_11_eigen_value, S_11_eigen_vector = np.linalg.eig(S_11_inv)
+
+        return np.linalg.eig(
+            a=S_11_eigen_vector
+            @ np.diag(np.sqrt(S_11_eigen_value))
+            @ S_11_eigen_vector.T
+            @ S_12
+            @ S_22_inv
+            @ S_12.T
+            @ S_11_eigen_vector
+            @ np.diag(np.sqrt(S_11_eigen_value))
+            @ S_11_eigen_vector.T
+        )
+
+
 class ANOVA(LinearBaseModel, StatisticalTest):
     def __init__(self):
         super().__init__(add_intercept=True)
@@ -35,6 +60,8 @@ class ANOVA(LinearBaseModel, StatisticalTest):
 # %%
 
 # %%
+
+
 # class old_LinearModel:
 #     def __init__(self, intercept: bool = True) -> None:
 #         self.intercept = intercept
@@ -562,3 +589,4 @@ class ANOVA(LinearBaseModel, StatisticalTest):
 #     anova.updatemodel("GL_STO info", {"GL_STO": {"EQP": None, "CHAMBER": None}})
 #     anova.finish()
 #     anova._get_ANOVA_summary_table()
+# %%

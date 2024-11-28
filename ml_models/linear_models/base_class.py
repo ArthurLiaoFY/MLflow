@@ -75,6 +75,39 @@ class StatisticalModel:
         )
         fig.show()
 
+    def plot_fitted_line(self, X: np.ndarray, y: np.ndarray) -> None:
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=X,
+                y=y,
+                mode="markers",
+                name="Data",
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=np.sort(np.unique(X)),
+                y=self.predict(X=np.sort(np.unique(X))),
+                mode="lines+markers",
+                name="Fitted Line",
+            )
+        )
+
+        fig.update_layout(
+            title={
+                "text": f"Fitted Line Plot, R square: {r_square(y_true=y, y_pred=self.predict(X=X)):.4f}",
+                "x": 0.5,
+                "xanchor": "center",
+                "yanchor": "top",
+            },
+            template="plotly_white",
+            xaxis_title="X",
+            yaxis_title="actual value",
+            showlegend=True,
+        )
+        fig.show()
+
 
 class StatisticalTest:
     def __init__(self):
