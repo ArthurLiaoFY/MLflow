@@ -141,7 +141,7 @@ group_mahalanobis_distance = {
 fig = make_subplots(
     rows=1,
     cols=2,
-    shared_yaxes=False,
+    shared_yaxes=True,
     subplot_titles=(
         "Outlier Detection group by K-medoids",
         "T-SNE with K-medoids Labels",
@@ -162,8 +162,9 @@ for label in np.unique(medoids.labels):
                     titleside="right",
                 ),
                 colorscale="reds",
-                showscale=True,
+                showscale=False,
             ),
+            name=f"Label: {str(label)}",
             showlegend=False,
         ),
         row=1,
@@ -181,7 +182,7 @@ fig.add_trace(
             size=8,
             opacity=0.7,
         ),
-        name="T-SNE",
+        showlegend=False,
     ),
     row=1,
     col=2,
@@ -196,7 +197,6 @@ fig.update_layout(
 fig.update_xaxes(title_text="T-SNE - Dimension 1", row=1, col=1)
 fig.update_yaxes(title_text="T-SNE - Dimension 2", row=1, col=1)
 fig.update_xaxes(title_text="T-SNE - Dimension 1", row=1, col=2)
-fig.update_yaxes(title_text="T-SNE - Dimension 2", row=1, col=2)
 
 fig.show()
 
