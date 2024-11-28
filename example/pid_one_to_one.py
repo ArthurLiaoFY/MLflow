@@ -1,5 +1,8 @@
 # %%
-import matplotlib.pyplot as plt
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 import numpy as np
 import plotly.graph_objects as go
 
