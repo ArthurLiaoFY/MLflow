@@ -1,7 +1,7 @@
 import plotly
 import plotly.graph_objects as go
 
-from ml_models.density_estimate.kernel_density import *
+from ml_models.kernel_density import *
 
 x_span = np.linspace(start=-1.5, stop=1.5, num=401)
 
