@@ -16,9 +16,10 @@ $y = f(x_1, x_2) = \frac{-\cos(\pi x_1) \cdot \cos(2\pi x_2)}{1 + x_1^2 + x_2^2}
 $\epsilon \sim N(0, 0.01)$;  
 $x_1 \in [-1.75, 1.75]$;  
 $x_2 \in [-1.75, 1.75]$; 
+![Descent Plot](./pso.gif)
 
 ### 實際資料應用：
-![Project Logo](./logo-xs.svg)
+![Data Logo](./logo-xs.svg)
 
 後將我們的方法應用於實際資料，該資料取自[內政部不動產交易實價查詢服務網](https://plvr.land.moi.gov.tw/DownloadOpenData)，取2024年第二季與第三季的預售屋成交資料進行模型 $\hat{f}(x)$ 建置，並透過 Differential evolution 最佳化。
 
