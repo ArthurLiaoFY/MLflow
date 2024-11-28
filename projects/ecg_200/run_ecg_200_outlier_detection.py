@@ -22,12 +22,12 @@ df = (
         objs=(
             pd.DataFrame(
                 arff.loadarff(
-                    "./ECG200_TRAIN.arff",
+                    "./data/ECG200_TRAIN.arff",
                 )[0]
             ),
             pd.DataFrame(
                 arff.loadarff(
-                    "./ECG200_TEST.arff",
+                    "./data/ECG200_TEST.arff",
                 )[0]
             ),
         ),
