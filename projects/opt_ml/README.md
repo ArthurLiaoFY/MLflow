@@ -27,13 +27,14 @@ def f1(x1, x2):
 5. 對已收斂的估計反應曲面 $\hat{f}$ 使用粒子群最佳化（PSO），最終收斂至全域最小值。結果展示於 **下圖右**，可以看到粒子群完美地找到目標函數的最小值。
 
 
-![Descent Plot](./pso.gif)
+![Descent Plot](./plots/simulate_F1.gif)
+![Descent Plot](./plots/simulate_F2.gif)
 
 ### 實際資料應用：
-![Data Logo](./logo-xs.svg)
+![Data Logo](./plots/logo-xs.svg)
 
 後將我們的方法應用於實際資料，該資料取自[內政部不動產交易實價查詢服務網](https://plvr.land.moi.gov.tw/DownloadOpenData)，取2024年第二季與第三季的預售屋成交資料進行模型 $\hat{f}(x)$ 建置，並透過 Differential evolution 最佳化。
-![Descent Plot](./housing.gif)
+![Descent Plot](./plots/housing.gif)
 
 
 ## 使用方法
