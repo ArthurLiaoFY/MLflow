@@ -12,6 +12,7 @@ def plot_obj_surface(
     x_min: list,
     x1_step: float,
     x2_step: float,
+    plot_file_path: str,
     animate: bool = False,
     desc: str = "housing",
 ):
@@ -137,4 +138,4 @@ def plot_obj_surface(
     plt.tight_layout()
     plt.show()
 
-    # ani.save("pso.gif", writer="pillow")
+    ani.save(f"{plot_file_path}/{desc}.gif", writer="pillow")
