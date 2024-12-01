@@ -19,7 +19,7 @@ target_2_duration = 7000
 sample_size = 50
 seed = np.random.RandomState(1122)
 epsilon = 0.5
-
+repair_gap_per_items = 3000
 upper_input_value = 70
 init_input_value = 40
 lower_input_value = 35
@@ -29,13 +29,14 @@ pidc = PIDController(target_point=target_point_1, Kp=0.013, Ki=0.422, Kd=0.005)
 
 
 def f(iv, time):
-    degradation = 0.0042 * time
+    center_deg = 0.004 * (time % repair_gap_per_items)
+    trend_deg = 0.00001 * time
     return (
-        1.38681004 * iv
-        - 12.75095789
+        1.38 * (1 + trend_deg) * iv
+        - 12.75
         + seed.uniform(low=-epsilon, high=epsilon, size=1)
         # + seed.randn() * epsilon
-        - degradation
+        - center_deg
     )
 
 
@@ -452,3 +453,5 @@ print(
         )
     ).std(),
 )
+
+# %%
