@@ -29,14 +29,14 @@ pidc = PIDController(target_point=target_point_1, Kp=0.013, Ki=0.422, Kd=0.005)
 
 
 def f(iv, time):
-    center_deg = 0.004 * (time % repair_gap_per_items)
-    trend_deg = 0.00001 * time
+    center_drift = 0.004 * (time % repair_gap_per_items)
+    trend_drift = 0.000015 * time
     return (
-        1.38 * (1 + trend_deg) * iv
+        1.38 * (1 + trend_drift) * iv
         - 12.75
         + seed.uniform(low=-epsilon, high=epsilon, size=1)
         # + seed.randn() * epsilon
-        - center_deg
+        - center_drift
     )
 
 
