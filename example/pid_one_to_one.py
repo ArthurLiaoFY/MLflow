@@ -6,6 +6,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 import numpy as np
 import plotly.graph_objects as go
 
+from ml_models.common.tools import moving_average
 from ml_models.linear_models.models.adaptive_controller import (
     BetaController,
     PIDController,
@@ -15,7 +16,7 @@ target_point_1 = 43
 target_1_duration = 7000
 target_point_2 = 37
 target_2_duration = 7000
-sample_size = 50
+sample_size = 100
 seed = np.random.RandomState(1122)
 epsilon = 0.5
 repair_gap_per_items = 3000
@@ -30,13 +31,7 @@ pidc = PIDController(target_point=target_point_1, Kp=0.013, Ki=0.422, Kd=0.005)
 def f(iv, time):
     center_drift = 0.002 * (time % repair_gap_per_items)
     trend_drift = 0.00001 * time
-    return (
-        1.38 * (1 + trend_drift) * iv
-        - 12.75
-        - center_drift
-        + seed.uniform(low=-epsilon, high=epsilon, size=1)
-        # + seed.randn() * epsilon
-    )
+    return 1.38 * (1 + trend_drift) * iv - 12.75 - center_drift + seed.randn() * epsilon
 
 
 def plot_ctrl_trend(control_ovs):
@@ -223,6 +218,7 @@ historical_ovs = np.array(
 
 estimated_intercept = []
 estimated_trend = []
+estimated_sigma_hat = []
 
 non_control_ivs = None
 non_control_ovs = None
@@ -231,32 +227,36 @@ bc_control_ivs = None
 bc_control_ovs = None
 
 bc_influential_points_mask = []
+online_prediction_error = []
+retrain_traj = [False]
 
 pidc_control_ivs = None
 pidc_control_ovs = None
 time = len(historical_ivs)
 # %%
 cnt = 0
-retrain = False
 while True:
     if cnt == 0:
         bc.estimate_Kp(X=historical_ivs, y=historical_ovs)
-    elif retrain:
+    elif retrain_traj[-1]:
         bc.estimate_Kp(
             X=(
                 np.concatenate(
-                    (historical_ivs, bc_control_ivs[bc_influential_points_mask]), axis=0
-                )[-150:]
+                    (historical_ivs, bc_control_ivs[bc_influential_points_mask][-300:]),
+                    axis=0,
+                )
             ),
             y=(
                 np.concatenate(
-                    (historical_ovs, bc_control_ovs[bc_influential_points_mask]), axis=0
-                )[-150:]
+                    (historical_ovs, bc_control_ovs[bc_influential_points_mask][-300:]),
+                    axis=0,
+                )
             ),
         )
 
     estimated_intercept.append(bc.intercept)
     estimated_trend.append(bc.trend.item())
+    estimated_sigma_hat.append(bc.lm.sigma_hat)
 
     bc_ctrl = bc.compute(
         y_new=historical_ovs[-1] if bc_control_ovs is None else bc_control_ovs[-1],
@@ -311,9 +311,6 @@ while True:
         else f(iv=pidc_control_ivs[-1].reshape(1, -1), time=time)
     )
 
-    iv_after_bc_ctrl = historical_ivs[-1].reshape(1, -1) + bc_ctrl
-    ov_after_bc_ctrl = f(iv=bc_control_ivs[-1].reshape(1, -1), time=time)
-
     bc_control_ivs = (
         np.concatenate(
             (
@@ -337,6 +334,20 @@ while True:
         else f(iv=bc_control_ivs[-1].reshape(1, -1), time=time)
     )
 
+    online_prediction_error.append(
+        np.power(bc.lm.predict(X=bc_control_ivs[-1]) - bc_control_ovs[-1], 2).mean()
+    )
+
+    if online_prediction_error[-1] >= bc.lm.sigma_hat * 2:
+        bc_influential_points_mask.append(False)
+    else:
+        bc_influential_points_mask.append(True)
+
+    if np.mean(online_prediction_error[-10:]) >= bc.lm.sigma_hat:
+        retrain_traj.append(True)
+    else:
+        retrain_traj.append(False)
+
     if cnt == target_1_duration - 1:
         pidc.reset_target_point(
             target_point=target_point_2,
@@ -347,9 +358,10 @@ while True:
 
     elif cnt == target_1_duration + target_2_duration - 1:
         break
+
     cnt += 1
     time += 1
-    bc_influential_points_mask.append(True)
+
 # %%
 fig = go.Figure()
 fig.add_trace(
@@ -391,11 +403,51 @@ fig.add_trace(
     )
 )
 fig.show()
+# %%
+fig = go.Figure()
+fig.add_trace(
+    go.Scatter(
+        y=retrain_traj[:1000],
+        mode="lines+markers",
+    )
+)
+# %%
+fig = go.Figure()
+fig.add_trace(
+    go.Scatter(
+        x=list(range(len(historical_ivs), time)),
+        y=moving_average(y=online_prediction_error[:1000], window_size=10),
+        mode="lines+markers",
+        name="Smoothed (MA30) Online Prediction Error",
+        marker=dict(color="blue", opacity=1),
+    )
+)
+fig.add_trace(
+    go.Scatter(
+        x=list(range(len(historical_ivs), time)),
+        y=online_prediction_error[:1000],
+        mode="markers",
+        name="Online Prediction Error",
+        marker=dict(color="green", opacity=0.3),
+    )
+)
+
+fig.add_trace(
+    go.Scatter(
+        x=list(range(len(historical_ivs), time)),
+        y=estimated_sigma_hat[:1000],
+        mode="markers",
+        name="Estimated Sigma",
+        marker=dict(color="red", opacity=0.3),
+    )
+)
+
+fig.show()
 
 # %%
 
 plot_ctrl_trend(non_control_ovs)
-plot_ctrl_trend(pidc_control_ovs)
+# plot_ctrl_trend(pidc_control_ovs)
 plot_ctrl_trend(bc_control_ovs)
 
 # %%
