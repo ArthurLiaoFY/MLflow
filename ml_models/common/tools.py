@@ -37,5 +37,8 @@ def sum_coding_matrix(
 
 def moving_average(y: np.ndarray, window_size: int):
     cum_y = np.cumsum(y, dtype=float)
-    cum_y[window_size:] = cum_y[window_size:] - cum_y[:-window_size]
-    return cum_y[window_size - 1 :] / window_size
+    cum_y[window_size:] = (cum_y[window_size:] - cum_y[:-window_size]) / window_size
+    cum_y[:window_size] = np.array(
+        [cy / (idx + 1) for idx, cy in enumerate(cum_y[:window_size])]
+    )
+    return cum_y
