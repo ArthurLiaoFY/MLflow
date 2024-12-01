@@ -1,6 +1,8 @@
 # %%
 import numpy as np
 
+from .linear_model import LinearModel
+
 
 class BetaController:
     def __init__(
@@ -8,6 +10,7 @@ class BetaController:
         target_point: float,
         epsilon: float = 1e-7,
     ):
+        self.lm = LinearModel(add_intercept=True)
         self.reset_target_point(
             target_point=target_point,
         )
@@ -25,8 +28,12 @@ class BetaController:
         )
 
     def estimate_Kp(self, X: np.ndarray, y: np.ndarray) -> None:
-        beta_hat = np.linalg.pinv(X.T @ X) @ X.T @ y
-        self.Kp = 1 / (beta_hat + self.epsilon)[1:, :]
+        self.lm.fit(X=X, y=y)
+        self.lm.jackknife_residuals
+        self.intercept = self.lm.beta_hat[0, :].squeeze().item()
+        self.trend = self.lm.beta_hat[1:, :].squeeze()
+
+        self.Kp = 1 / (self.lm.beta_hat + self.epsilon)[1:, :]
 
 
 class PIDController:
@@ -45,7 +52,6 @@ class PIDController:
         self.tau = tau
         self.dt = dt
         self.reset_target_point(target_point=target_point)
-
 
     def reset_target_point(self, target_point: float):
         self.target_point = target_point
