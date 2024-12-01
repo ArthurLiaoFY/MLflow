@@ -10,7 +10,6 @@ from ml_models.linear_models.models.adaptive_controller import (
     BetaController,
     PIDController,
 )
-from ml_models.linear_models.tools import to_model_matrix
 
 target_point_1 = 43
 target_1_duration = 7000
@@ -29,14 +28,14 @@ pidc = PIDController(target_point=target_point_1, Kp=0.013, Ki=0.422, Kd=0.005)
 
 
 def f(iv, time):
-    center_drift = 0.004 * (time % repair_gap_per_items)
-    trend_drift = 0.000015 * time
+    center_drift = 0.002 * (time % repair_gap_per_items)
+    trend_drift = 0.00001 * time
     return (
         1.38 * (1 + trend_drift) * iv
         - 12.75
+        - center_drift
         + seed.uniform(low=-epsilon, high=epsilon, size=1)
         # + seed.randn() * epsilon
-        - center_drift
     )
 
 
@@ -222,36 +221,42 @@ historical_ovs = np.array(
 )
 
 
+estimated_intercept = []
+estimated_trend = []
+
 non_control_ivs = None
 non_control_ovs = None
 
 bc_control_ivs = None
 bc_control_ovs = None
 
+bc_influential_points_mask = []
+
 pidc_control_ivs = None
 pidc_control_ovs = None
 time = len(historical_ivs)
 # %%
 cnt = 0
+retrain = False
 while True:
-    model_mat = to_model_matrix(historical_ivs)
-    bc.estimate_Kp(X=model_mat, y=historical_ovs)
+    if cnt == 0:
+        bc.estimate_Kp(X=historical_ivs, y=historical_ovs)
+    elif retrain:
+        bc.estimate_Kp(
+            X=(
+                np.concatenate(
+                    (historical_ivs, bc_control_ivs[bc_influential_points_mask]), axis=0
+                )[-150:]
+            ),
+            y=(
+                np.concatenate(
+                    (historical_ovs, bc_control_ovs[bc_influential_points_mask]), axis=0
+                )[-150:]
+            ),
+        )
 
-    # model_mat = to_model_matrix(
-    #     X=(
-    #         np.concatenate((historical_ivs, bc_control_ivs), axis=0)
-    #         if bc_control_ivs is not None
-    #         else historical_ivs
-    #     )
-    # )
-    # bc.estimate_Kp(
-    #     X=model_mat,
-    #     y=(
-    #         np.concatenate((historical_ovs, bc_control_ovs), axis=0)
-    #         if bc_control_ovs is not None
-    #         else historical_ovs
-    #     ),
-    # )
+    estimated_intercept.append(bc.intercept)
+    estimated_trend.append(bc.trend.item())
 
     bc_ctrl = bc.compute(
         y_new=historical_ovs[-1] if bc_control_ovs is None else bc_control_ovs[-1],
@@ -283,29 +288,6 @@ while True:
         else f(iv=non_control_ivs[-1].reshape(1, -1), time=time)
     )
 
-    bc_control_ivs = (
-        np.concatenate(
-            (
-                bc_control_ivs,
-                bc_control_ivs[-1].reshape(1, -1) + bc_ctrl,
-            ),
-            axis=0,
-        )
-        if bc_control_ivs is not None
-        else historical_ivs[-1].reshape(1, -1) + bc_ctrl
-    )
-    bc_control_ovs = (
-        np.concatenate(
-            (
-                bc_control_ovs,
-                f(iv=bc_control_ivs[-1].reshape(1, -1), time=time),
-            ),
-            axis=0,
-        )
-        if bc_control_ovs is not None
-        else f(iv=bc_control_ivs[-1].reshape(1, -1), time=time)
-    )
-
     pidc_control_ivs = (
         np.concatenate(
             (
@@ -329,23 +311,94 @@ while True:
         else f(iv=pidc_control_ivs[-1].reshape(1, -1), time=time)
     )
 
+    iv_after_bc_ctrl = historical_ivs[-1].reshape(1, -1) + bc_ctrl
+    ov_after_bc_ctrl = f(iv=bc_control_ivs[-1].reshape(1, -1), time=time)
+
+    bc_control_ivs = (
+        np.concatenate(
+            (
+                bc_control_ivs,
+                bc_control_ivs[-1].reshape(1, -1) + bc_ctrl,
+            ),
+            axis=0,
+        )
+        if bc_control_ivs is not None
+        else historical_ivs[-1].reshape(1, -1) + bc_ctrl
+    )
+    bc_control_ovs = (
+        np.concatenate(
+            (
+                bc_control_ovs,
+                f(iv=bc_control_ivs[-1].reshape(1, -1), time=time),
+            ),
+            axis=0,
+        )
+        if bc_control_ovs is not None
+        else f(iv=bc_control_ivs[-1].reshape(1, -1), time=time)
+    )
+
     if cnt == target_1_duration - 1:
+        pidc.reset_target_point(
+            target_point=target_point_2,
+        )
         bc.reset_target_point(
             target_point=target_point_2,
         )
-        pidc = PIDController(target_point=target_point_2, Kp=0.013, Ki=0.422, Kd=0.005)
 
     elif cnt == target_1_duration + target_2_duration - 1:
         break
     cnt += 1
     time += 1
+    bc_influential_points_mask.append(True)
+# %%
+fig = go.Figure()
+fig.add_trace(
+    go.Scatter(
+        x=list(range(len(historical_ivs), time)),
+        y=estimated_intercept,
+        mode="lines+markers",
+        name="Estimated Intercept Trend",
+        marker=dict(color="green", opacity=0.6),
+    )
+)
+fig.add_trace(
+    go.Scatter(
+        x=list(range(len(historical_ivs), time)),
+        y=-(
+            12.75
+            + 0.002
+            * (np.array(range(len(historical_ivs), time)) % repair_gap_per_items)
+        ),
+        mode="lines",
+        name="Actual Intercept Trend",
+    )
+)
+fig.add_trace(
+    go.Scatter(
+        x=list(range(len(historical_ivs), time)),
+        y=estimated_trend,
+        mode="lines+markers",
+        name="Estimated Beta Trend",
+        marker=dict(color="blue", opacity=0.6),
+    )
+)
+fig.add_trace(
+    go.Scatter(
+        x=list(range(len(historical_ivs), time)),
+        y=1.38 * (1 + 0.00001 * np.array(range(len(historical_ivs), time))),
+        mode="lines",
+        name="Actual Beta Trend",
+    )
+)
+fig.show()
 
+# %%
 
 plot_ctrl_trend(non_control_ovs)
 plot_ctrl_trend(pidc_control_ovs)
 plot_ctrl_trend(bc_control_ovs)
 
-
+# %%
 fig = go.Figure()
 fig.add_trace(
     go.Scatter(
