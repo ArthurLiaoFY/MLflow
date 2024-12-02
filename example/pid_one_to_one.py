@@ -25,6 +25,7 @@ repair_gap_per_items = 3000
 upper_input_value = 70
 init_input_value = 40
 lower_input_value = 35
+influential_points_threshold = 1.5
 
 bc = BetaController(target_point=target_point_1)
 pidc = PIDController(target_point=target_point_1, Kp=0.013, Ki=0.422, Kd=0.005)
@@ -267,7 +268,7 @@ while True:
         )
         # redefine influential points
         bc_influential_points_mask = [
-            False if spe >= bc.lm.sigma_hat * 2 else True
+            False if spe >= bc.lm.sigma_hat * influential_points_threshold else True
             for spe in np.power(
                 bc.lm.predict(X=bc_control_ivs) - bc_control_ovs,
                 2,
@@ -358,7 +359,7 @@ while True:
         np.power(bc.lm.predict(X=bc_control_ivs[-1]) - bc_control_ovs[-1], 2).mean()
     )
 
-    if online_prediction_error[-1] >= bc.lm.sigma_hat * 2:
+    if online_prediction_error[-1] >= bc.lm.sigma_hat * influential_points_threshold:
         bc_influential_points_mask.append(False)
     else:
         bc_influential_points_mask.append(True)
