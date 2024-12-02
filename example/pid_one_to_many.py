@@ -32,12 +32,15 @@ bc = BetaController(target_point=target_point_1)
 def f(iv, time):
     degradation = 0.01 * time
 
-    return (
-        50
-        + 1.5 * iv[0]
-        - 3.2 * iv[1]
-        + seed.uniform(low=-epsilon, high=epsilon, size=1)
-        - degradation
+    return np.array(
+        [
+            50
+            + 1.5 * iv[0]
+            - 3.2 * iv[1]
+            + seed.uniform(low=-epsilon, high=epsilon, size=1)
+            # + seed.randn() * epsilon
+            - degradation
+        ]
     )
 
 
@@ -226,9 +229,8 @@ historical_ivs = (
 )
 
 seed.shuffle(historical_ivs)
-historical_ovs = np.array(
-    [f(iv=iv, time=time) for time, iv in enumerate(historical_ivs)]
-)
+historical_ovs = np.array([f(iv=iv, time=time).item() for time, iv in enumerate(historical_ivs)])
+
 # %%
 fig = go.Figure()
 
@@ -249,9 +251,6 @@ fig.update_layout(
 )
 
 fig.show()
-# %%
-X = to_model_matrix(historical_ivs)
-print(np.linalg.pinv(X.T @ X) @ X.T @ historical_ovs)
 
 # %%
 non_control_ivs = None
@@ -267,8 +266,7 @@ time = len(historical_ivs)
 
 cnt = 0
 while True:
-    model_mat = to_model_matrix(historical_ivs)
-    bc.estimate_Kp(X=model_mat, y=historical_ovs)
+    bc.estimate_Kp(X=historical_ivs, y=historical_ovs)
     # model_mat = to_model_matrix(
     #     X=(
     #         np.concatenate((historical_ivs, bc_control_ivs), axis=0)

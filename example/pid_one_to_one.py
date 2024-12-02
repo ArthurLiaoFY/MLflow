@@ -34,7 +34,13 @@ def f(iv, time):
     center_drift = 0.002 * (time % repair_gap_per_items)
     # center_drift = 0.002 * time 
     trend_drift = 0.00001 * time
-    return 1.38 * (1 + trend_drift) * iv - 12.75 - center_drift + seed.randn() * epsilon
+    return (
+        1.38 * (1 + trend_drift) * iv
+        - 12.75
+        - center_drift
+        + seed.uniform(low=-epsilon, high=epsilon, size=1)
+        # + seed.randn() * epsilon
+    )
 
 
 def plot_ctrl_trend(control_ovs):

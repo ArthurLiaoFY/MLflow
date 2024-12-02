@@ -30,10 +30,10 @@ class BetaController:
     def estimate_Kp(self, X: np.ndarray, y: np.ndarray) -> None:
         self.lm.fit(X=X, y=y)
         self.lm.jackknife_residuals
-        self.intercept = self.lm.beta_hat[0, :].squeeze().item()
-        self.trend = self.lm.beta_hat[1:, :].squeeze()
+        self.intercept = self.lm.beta_hat[0].item()
+        self.trend = self.lm.beta_hat[1:].squeeze()
 
-        self.Kp = 1 / (self.lm.beta_hat + self.epsilon)[1:, :]
+        self.Kp = 1 / (self.trend + self.epsilon) 
 
 
 class PIDController:
