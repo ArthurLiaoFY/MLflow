@@ -19,6 +19,8 @@ target_2_duration = 7000
 sample_size = 100
 seed = np.random.RandomState(1122)
 epsilon = 0.5
+error_smoothing_window = 10
+retrain_window_size = 300
 repair_gap_per_items = 3000
 upper_input_value = 70
 init_input_value = 40
@@ -30,6 +32,7 @@ pidc = PIDController(target_point=target_point_1, Kp=0.013, Ki=0.422, Kd=0.005)
 
 def f(iv, time):
     center_drift = 0.002 * (time % repair_gap_per_items)
+    # center_drift = 0.002 * time 
     trend_drift = 0.00001 * time
     return 1.38 * (1 + trend_drift) * iv - 12.75 - center_drift + seed.randn() * epsilon
 
@@ -237,22 +240,33 @@ time = len(historical_ivs)
 cnt = 0
 while True:
     if cnt == 0:
-        bc.estimate_Kp(X=historical_ivs, y=historical_ovs)
+        bc.estimate_Kp(
+            X=historical_ivs[-retrain_window_size:],
+            y=historical_ovs[-retrain_window_size:],
+        )
     elif retrain_traj[-1]:
         bc.estimate_Kp(
             X=(
                 np.concatenate(
-                    (historical_ivs, bc_control_ivs[bc_influential_points_mask][-300:]),
+                    (historical_ivs, bc_control_ivs[bc_influential_points_mask]),
                     axis=0,
-                )
+                )[-retrain_window_size:]
             ),
             y=(
                 np.concatenate(
-                    (historical_ovs, bc_control_ovs[bc_influential_points_mask][-300:]),
+                    (historical_ovs, bc_control_ovs[bc_influential_points_mask]),
                     axis=0,
-                )
+                )[-retrain_window_size:]
             ),
         )
+        # redefine influential points
+        bc_influential_points_mask = [
+            False if spe >= bc.lm.sigma_hat * 2 else True
+            for spe in np.power(
+                bc.lm.predict(X=bc_control_ivs) - bc_control_ovs,
+                2,
+            ).squeeze()
+        ]
 
     estimated_intercept.append(bc.intercept)
     estimated_trend.append(bc.trend.item())
@@ -343,7 +357,7 @@ while True:
     else:
         bc_influential_points_mask.append(True)
 
-    if np.mean(online_prediction_error[-10:]) >= bc.lm.sigma_hat:
+    if np.mean(online_prediction_error[-error_smoothing_window:]) >= bc.lm.sigma_hat:
         retrain_traj.append(True)
     else:
         retrain_traj.append(False)
@@ -380,6 +394,7 @@ fig.add_trace(
             12.75
             + 0.002
             * (np.array(range(len(historical_ivs), time)) % repair_gap_per_items)
+            # * np.array(range(len(historical_ivs), time))
         ),
         mode="lines",
         name="Actual Intercept Trend",
@@ -407,16 +422,18 @@ fig.show()
 fig = go.Figure()
 fig.add_trace(
     go.Scatter(
-        y=retrain_traj[:1000],
+        x=list(range(len(historical_ivs), time)),
+        y=retrain_traj,
         mode="lines+markers",
     )
 )
+fig.show()
 # %%
 fig = go.Figure()
 fig.add_trace(
     go.Scatter(
         x=list(range(len(historical_ivs), time)),
-        y=moving_average(y=online_prediction_error[:1000], window_size=10),
+        y=moving_average(y=online_prediction_error, window_size=error_smoothing_window),
         mode="lines+markers",
         name="Smoothed (MA30) Online Prediction Error",
         marker=dict(color="blue", opacity=1),
@@ -425,7 +442,7 @@ fig.add_trace(
 fig.add_trace(
     go.Scatter(
         x=list(range(len(historical_ivs), time)),
-        y=online_prediction_error[:1000],
+        y=online_prediction_error,
         mode="markers",
         name="Online Prediction Error",
         marker=dict(color="green", opacity=0.3),
@@ -435,7 +452,7 @@ fig.add_trace(
 fig.add_trace(
     go.Scatter(
         x=list(range(len(historical_ivs), time)),
-        y=estimated_sigma_hat[:1000],
+        y=estimated_sigma_hat,
         mode="markers",
         name="Estimated Sigma",
         marker=dict(color="red", opacity=0.3),
@@ -447,7 +464,7 @@ fig.show()
 # %%
 
 plot_ctrl_trend(non_control_ovs)
-# plot_ctrl_trend(pidc_control_ovs)
+plot_ctrl_trend(pidc_control_ovs)
 plot_ctrl_trend(bc_control_ovs)
 
 # %%
