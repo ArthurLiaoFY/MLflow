@@ -27,7 +27,7 @@ class BetaController:
             / np.abs(self.Kp).sum()
         )
 
-    def estimate_Kp(self, X: np.ndarray, y: np.ndarray) -> None:
+    def estimate_parameter(self, X: np.ndarray, y: np.ndarray) -> None:
         self.lm.fit(X=X, y=y)
 
         self.intercept = self.lm.beta_hat[0].item()
@@ -75,3 +75,11 @@ class PIDController:
         self.prev_d = derivative
 
         return ctrl
+
+    def estimate_parameter(self):
+        # use Ziegler-Nichols Method
+        Kp = 0
+        Ki = 0
+        Kd = 0
+
+        pass
