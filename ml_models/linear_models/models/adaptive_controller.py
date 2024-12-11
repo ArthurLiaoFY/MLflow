@@ -43,7 +43,7 @@ class PIDController:
         Kp: float,
         Ki: float,
         Kd: float,
-        tau: float | None = None,
+        tau: float = 0.1,
         dt: float = 1.0,
     ):
         self.Kp = Kp
@@ -66,7 +66,8 @@ class PIDController:
         derivative = (
             (error - self.prev_error) / self.dt
             if self.tau is None
-            else (self.tau * self.prev_d + self.dt * derivative) / (self.tau + self.dt)
+            else (self.tau * self.prev_d + (error - self.prev_error))
+            / (self.tau + self.dt)
         )
 
         ctrl = self.Kp * error + self.Ki * self.integral + self.Kd * derivative
