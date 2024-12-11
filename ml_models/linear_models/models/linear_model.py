@@ -24,7 +24,7 @@ class LinearModel(LinearBaseModel, StatisticalModel):
 
     def predict(self, X: np.ndarray) -> np.ndarray | None:
         return self._predict(
-            X=X,
+            X=to_model_matrix(X=X, add_intercept=self.add_intercept),
         )
 
 

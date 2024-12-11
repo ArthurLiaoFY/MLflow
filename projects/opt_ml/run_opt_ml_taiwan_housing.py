@@ -28,8 +28,6 @@ presale_df = load_presale_data(data_file_path=config.get("data_file_path"))
 # %%
 trans_df = trans_cls.fit_transform(df=presale_df)
 # %%
-b = trans_cls.fit_transform(df=presale_df.iloc[[0], :])
-# %%
 sm = EstimateSurface(
     run_id="boston_housing",
     in_feature=trans_df.shape[-1] - 1,

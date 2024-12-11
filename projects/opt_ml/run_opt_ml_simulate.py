@@ -56,8 +56,9 @@ plot_obj_surface(
     x_min=sd.x_min,
     x1_step=int(config.get("x1_step")),
     x2_step=int(config.get("x2_step")),
+    plot_file_path=config.get("plot_file_path"),
     animate=True,
-    desc="simulate",
+    desc="simulate_" + config.get("func"),
 )
 
 # %%

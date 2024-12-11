@@ -13,7 +13,7 @@ from scipy.io import arff
 from sklearn.manifold import TSNE
 from sklearn.metrics.pairwise import euclidean_distances
 
-from ml_models.linear_models.distance import mahalanobis_distance
+from ml_models.linear_models.distance import MahalanobisDistance
 
 # %%
 
@@ -22,12 +22,12 @@ df = (
         objs=(
             pd.DataFrame(
                 arff.loadarff(
-                    "./ECG200_TRAIN.arff",
+                    "./data/ECG200_TRAIN.arff",
                 )[0]
             ),
             pd.DataFrame(
                 arff.loadarff(
-                    "./ECG200_TEST.arff",
+                    "./data/ECG200_TEST.arff",
                 )[0]
             ),
         ),
@@ -123,8 +123,8 @@ group_mahalanobis_distance = {
     f"{label}": np.max(
         np.array(
             [
-                mahalanobis_distance(
-                    df.iloc[medoids.labels == label, col].to_numpy()[:, np.newaxis]
+                MahalanobisDistance().inner_distance(
+                    X=df.iloc[medoids.labels == label, col].to_numpy()[:, np.newaxis]
                 )
                 for col in range(df.shape[-1])
             ]
