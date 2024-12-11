@@ -1,18 +1,16 @@
 # %%
-
 from configparser import ConfigParser
 
 import numpy as np
 import pandas as pd
 import seaborn as sns
-
-from projects.wafer_overlay.load_data import load_data
-from projects.wafer_overlay.plot_fns import plot_boxplot, plot_scatter, plot_wafer
+from load_data import load_data
+from plot_fns import plot_boxplot, plot_scatter, plot_wafer
 
 # %%
 
 config = ConfigParser()
-config.read("projects/wafer_overlay/wafer_overlay.ini")
+config.read("./wafer_overlay.ini")
 # %%
 df = load_data(
     data_file_path=config["wafer_overlay"]["data_file_path"],
@@ -24,7 +22,19 @@ df = load_data(
         "C6_Space.Bot.CD",
         "D8_Line.Bot.CD",
     ],
-)
+).drop_duplicates()
+# %%
+df.groupby(["wafer_id", "ChuckId"])["WaferStartTime"].count().sort_values()
+# %%
+test_points = {}
+for wafer_id, sub_df in df.groupby("wafer_id"):
+    test_points[wafer_id] = set(
+        sub_df.apply(lambda x: str(x["posx"]) + "_" + str(x["posy"]), axis=1)
+    )
+# %%
+
+# %%
+df.drop_duplicates(subset=["wafer_id", "ChuckId"])
 # %%
 df.columns
 # %%
