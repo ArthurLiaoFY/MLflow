@@ -2,7 +2,7 @@ import torch
 
 
 class Autoencoder(torch.nn.Module):
-    def __init__(self, in_features: tuple = (1, 28, 28)):
+    def __init__(self, in_features: tuple = (1, 28, 28), reduction_ratio: float = 0.2):
         super(Autoencoder, self).__init__()
         self.in_features = in_features
         self.encoder = torch.nn.Sequential(
@@ -75,31 +75,61 @@ class VariationalConvAutoEncoder(torch.nn.Module):
         self.in_features = in_features
         self.encoder = torch.nn.Sequential(
             torch.nn.Conv2d(
-                in_channels=self.in_features[0], out_channels=64, kernel_size=3
+                in_channels=self.in_features[0],
+                out_channels=64,
+                kernel_size=3,
+                padding=1,
             ),
             torch.nn.LeakyReLU(),
-            torch.nn.Conv2d(in_channels=64, out_channels=32, kernel_size=3),
+            torch.nn.Conv2d(
+                in_channels=64,
+                out_channels=32,
+                kernel_size=3,
+                padding=1,
+            ),
             torch.nn.LeakyReLU(),
-            torch.nn.ConvTranspose2d(in_channels=32, out_channels=1, kernel_size=3),
-            torch.nn.LeakyReLU(),
+            torch.nn.ConvTranspose2d(
+                in_channels=32,
+                out_channels=1,
+                kernel_size=3,
+                padding=1,
+            ),
+            torch.nn.Sigmoid(),
         )
 
-        self.mu_head = torch.nn.Linear(
-            self.in_features[1] * self.in_features[2],
-            self.in_features[1] * self.in_features[2],
+        self.mu_head = torch.nn.Conv2d(
+            in_channels=self.in_features[0],
+            out_channels=self.in_features[0],
+            kernel_size=3,
+            padding=1,
         )
-        self.std_head = torch.nn.Linear(
-            self.in_features[1] * self.in_features[2],
-            self.in_features[1] * self.in_features[2],
+        self.std_head = torch.nn.Conv2d(
+            in_channels=self.in_features[0],
+            out_channels=self.in_features[0],
+            kernel_size=3,
+            padding=1,
         )
 
         self.decoder = torch.nn.Sequential(
-            torch.nn.ConvTranspose2d(in_channels=1, out_channels=32, kernel_size=3),
-            torch.nn.LeakyReLU(),
-            torch.nn.ConvTranspose2d(in_channels=32, out_channels=64, kernel_size=3),
+            torch.nn.ConvTranspose2d(
+                in_channels=1,
+                out_channels=32,
+                kernel_size=3,
+                padding=1,
+            ),
             torch.nn.LeakyReLU(),
             torch.nn.ConvTranspose2d(
-                in_channels=64, out_channels=self.in_features[0], kernel_size=3
+                in_channels=32,
+                out_channels=64,
+                kernel_size=3,
+                padding=1,
+            ),
+            torch.nn.LeakyReLU(),
+            torch.nn.ConvTranspose2d(
+                in_channels=64,
+                out_channels=self.in_features[0],
+                kernel_size=3,
+                padding=1,
             ),
             torch.nn.LeakyReLU(),
         )
@@ -111,9 +141,14 @@ class VariationalConvAutoEncoder(torch.nn.Module):
 
     def forward(self, x):
         # x shape [batch size, features]
-        encoded = self.encoder(x.reshape(x.shape[0], -1))
+        encoded = self.encoder(x)
         sample_mean = self.mu_head(encoded)
         sample_std = self.std_head(encoded)
 
-        z = self.sampling(sample_mean=sample_mean, sample_std=sample_std)
-        return self.decoder(z), sample_mean, sample_std
+        z = self.sampling(
+            sample_mean=sample_mean,
+            sample_std=sample_std,
+        )
+        return self.decoder(z)
+        # sample_mean,
+        # sample_std,
