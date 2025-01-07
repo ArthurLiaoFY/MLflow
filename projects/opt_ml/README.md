@@ -33,8 +33,7 @@ def f1(x1, x2):
 ### 實際資料應用：
 ![Data Logo](./plots/logo-xs.svg)
 
-後將我們的方法應用於實際資料，該資料取自[內政部不動產交易實價查詢服務網](https://plvr.land.moi.gov.tw/DownloadOpenData)，取2024年第二季與第三季的預售屋成交資料進行模型 $\hat{f}(x)$ 建置，並透過 Differential evolution 最佳化。
+後將我們的方法應用於實際資料，該資料取自[內政部不動產交易實價查詢服務網](https://plvr.land.moi.gov.tw/DownloadOpenData)，取2024年第二季與第三季的預售屋成交資料進行模型 $\hat{f}(x)$ 建置，並透過 Differential evolution 最佳化，在限制的空間中(地點在臺中市西區，建物＋車位總面積超過200平方公尺空間)找到最佳的價格。
 ![Descent Plot](./plots/housing.gif)
+其中$x_1$與$x_2$分別代表車位總面積與建物總面積，紅色虛線則代表建物＋車位總面積為200平方公尺之界線，在如此範圍內找到最佳物件為：車位40平方公尺，建物160平方公尺，價格預估為23379480元。
 
-
-## 使用方法
