@@ -33,7 +33,7 @@ pidc = PIDController(target_point=target_point_1, Kp=0.013, Ki=0.422, Kd=0.005)
 
 def f(iv, time):
     center_drift = 0.002 * (time % repair_gap_per_items)
-    # center_drift = 0.002 * time 
+    # center_drift = 0.002 * time
     trend_drift = 0.00001 * time
     return (
         1.38 * (1 + trend_drift) * iv
@@ -247,12 +247,12 @@ time = len(historical_ivs)
 cnt = 0
 while True:
     if cnt == 0:
-        bc.estimate_Kp(
+        bc.estimate_parameter(
             X=historical_ivs[-retrain_window_size:],
             y=historical_ovs[-retrain_window_size:],
         )
     elif retrain_traj[-1]:
-        bc.estimate_Kp(
+        bc.estimate_parameter(
             X=(
                 np.concatenate(
                     (historical_ivs, bc_control_ivs[bc_influential_points_mask]),

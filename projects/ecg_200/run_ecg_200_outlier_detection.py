@@ -7,6 +7,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 import kmedoids
 import numpy as np
 import pandas as pd
+import plotly
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from scipy.io import arff
@@ -14,7 +15,7 @@ from sklearn.manifold import TSNE
 from sklearn.metrics.pairwise import euclidean_distances
 
 from ml_models.linear_models.distance import MahalanobisDistance
-
+plot_file_path = './plots'
 # %%
 
 df = (
@@ -65,8 +66,10 @@ fig.update_xaxes(
     showticklabels=False,
 )
 fig.update_yaxes(title_text="Values")
-
-fig.show()
+plotly.offline.plot(
+    fig,
+    filename=f"{plot_file_path}/raw_data_trend.html",
+)
 
 # %%
 medoids = kmedoids.fasterpam(
@@ -105,7 +108,10 @@ fig.update_xaxes(
     showticklabels=False,
 )
 fig.update_yaxes(title_text="Values")
-fig.show()
+plotly.offline.plot(
+    fig,
+    filename=f"{plot_file_path}/raw_data_group_trend.html",
+)
 # %%
 # pca = PCA(n_components=2).fit(df.T)
 tsne_projection = TSNE(

@@ -229,7 +229,9 @@ historical_ivs = (
 )
 
 seed.shuffle(historical_ivs)
-historical_ovs = np.array([f(iv=iv, time=time).item() for time, iv in enumerate(historical_ivs)])
+historical_ovs = np.array(
+    [f(iv=iv, time=time).item() for time, iv in enumerate(historical_ivs)]
+)
 
 # %%
 fig = go.Figure()
@@ -266,7 +268,7 @@ time = len(historical_ivs)
 
 cnt = 0
 while True:
-    bc.estimate_Kp(X=historical_ivs, y=historical_ovs)
+    bc.estimate_parameter(X=historical_ivs, y=historical_ovs)
     # model_mat = to_model_matrix(
     #     X=(
     #         np.concatenate((historical_ivs, bc_control_ivs), axis=0)
