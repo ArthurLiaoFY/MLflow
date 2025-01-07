@@ -154,6 +154,139 @@ def train_model(
     return nn_model
 
 
+def train_gen_model(
+    run_id: str,
+    nn_model: torch.nn.Module,
+    train_dataloader: DataLoader,
+    valid_dataloader: DataLoader,
+    loss_fn: Callable,
+    evaluate_fns: Mapping[
+        str, Accuracy | Recall | Precision | RSquare | AreaUnderCurve
+    ],
+    optimizer: torch.optim.Optimizer,
+    early_stopping: EarlyStopping,
+    log_file_path: str,
+    epochs: int = 100,
+    seed: int | None = 1122,
+    mlflow_tracking: bool = True,
+) -> torch.nn.Module:
+
+    device = get_device()
+    log_file_path = f"{log_file_path}/{run_id}_log_file.txt"
+
+    log = open(log_file_path, "w")
+    log.write(f"currently using device: {device}\n")
+
+    nn_model.to(device)
+
+    if seed is not None:
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+        elif torch.backends.mps.is_available():
+            torch.mps.manual_seed(seed)
+
+    for epoch in range(epochs):
+        start = datetime.now()
+        # training
+        nn_model.train()
+        training_loss = 0.0
+
+        for train_x in train_dataloader:
+            # Forward propagation
+            train_x_prime = nn_model(train_x[0].to(device))  # Make prediction by passing X to our model
+
+            # check train_y_pred shape and train_y shape
+            loss = loss_fn(train_x_prime, train_x[0].to(device))  # Calculate loss
+            training_loss += loss.item()  # Add loss to running loss
+
+            # Backward propagation
+            optimizer.zero_grad()  # Empty the gradient (look up this function)
+            loss.backward()  # Do backward propagation and calculate the gradient of loss w.r.t every parameters
+            optimizer.step()  # Adjust parameters to minimize loss
+
+        training_loss /= len(train_dataloader)
+        # Append train loss
+
+        # validation
+        nn_model.eval()
+        validation_loss = 0.0
+        validation_eval = {fn_name: 0.0 for fn_name in evaluate_fns.keys()}
+
+        with torch.no_grad():
+            for valid_x in valid_dataloader:
+                valid_x_prime = nn_model(valid_x[0].to(device)) # Make prediction by passing X to our model
+                loss = loss_fn(valid_x_prime, valid_x[0].to(device))  # Calculate loss
+                validation_loss += loss.item()  # Add loss to running loss
+                for evaluate_fn in evaluate_fns.values():
+                    evaluate_fn.update(y_pred=valid_x_prime, y_true=valid_x[0].to(device))
+
+            for fn_name, evaluate_fn in evaluate_fns.items():
+                validation_eval[fn_name] = evaluate_fn.finish().item()
+
+            validation_loss /= len(valid_dataloader)
+
+        cost_time = datetime.now() - start
+        log.write("-" * 80 + "\n")
+        validate_massage = (
+            f"Epoch: {epoch}, Use Time: {cost_time.seconds}.{cost_time.microseconds} Second. \n"
+            + f"Train loss: {round(training_loss, 4)}; "
+            + f"Valid loss: {round(validation_loss, 4)}; "
+            + "; ".join(
+                [
+                    f"Valid {fn_name}: {round(evaluate_value, 4)}"
+                    for fn_name, evaluate_value in validation_eval.items()
+                ]
+            )
+            + "\n"
+        )
+        print(validate_massage)
+        log.write(validate_massage)
+        if mlflow_tracking:
+            mlflow.log_metric(
+                key="training loss",
+                value=f"{training_loss:4f}",
+                step=epoch,
+                run_id=run_id,
+            )
+            mlflow.log_metric(
+                key="validation loss",
+                value=f"{validation_loss:4f}",
+                step=epoch,
+                run_id=run_id,
+            )
+            for fn_name, evaluate_value in validation_eval.items():
+                mlflow.log_metric(
+                    key=f"validation {fn_name}",
+                    value=f"{evaluate_value:4f}",
+                    step=epoch,
+                    run_id=run_id,
+                )
+
+        early_stopping(
+            log=log,
+            val_loss=validation_loss,
+            model_state_dict=nn_model.state_dict(),
+        )
+        if early_stopping.early_stop:
+            log.write(
+                "*" * 4
+                + " Due to the early stopping mechanism, the training process is halted "
+                + "*" * 4
+                + "\n"
+            )
+
+            break
+    nn_model.load_state_dict(
+        torch.load(early_stopping.best_model_state, weights_only=True),
+    )
+    # mlflow.log_artifact(
+    #     local_path=log_file_path,
+    #     run_id=run_id,
+    # )
+    return nn_model
+
+
 def finetune_llm_model(
     run_id: str,
     llm_model: torch.nn.Module,
