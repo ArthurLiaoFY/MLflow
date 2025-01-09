@@ -15,7 +15,8 @@ from sklearn.manifold import TSNE
 from sklearn.metrics.pairwise import euclidean_distances
 
 from ml_models.linear_models.distance import MahalanobisDistance
-plot_file_path = './plots'
+
+plot_file_path = "./plots"
 # %%
 
 df = (
@@ -204,8 +205,10 @@ fig.update_xaxes(title_text="T-SNE - Dimension 1", row=1, col=1)
 fig.update_yaxes(title_text="T-SNE - Dimension 2", row=1, col=1)
 fig.update_xaxes(title_text="T-SNE - Dimension 1", row=1, col=2)
 
-fig.show()
-
+plotly.offline.plot(
+    fig,
+    filename=f"{plot_file_path}/data_projection_with_group.html",
+)
 # %%
 
 fig = go.Figure()
@@ -233,8 +236,10 @@ fig.update_layout(
 )
 
 fig.update_layout(barmode="stack")
-fig.show()
-
+plotly.offline.plot(
+    fig,
+    filename=f"{plot_file_path}/group_histogram.html",
+)
 # %%
 
 
@@ -341,7 +346,9 @@ fig.update_xaxes(
     showticklabels=False,
 )
 fig.update_yaxes(title_text="Values")
-
-fig.show()
+plotly.offline.plot(
+    fig,
+    filename=f"{plot_file_path}/raw_data_group_trend_filter_outlier.html",
+)
 
 # %%
