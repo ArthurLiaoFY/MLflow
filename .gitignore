@@ -6,7 +6,6 @@ __pycache__
 train_model_results
 mlflow_config.ini
 *.html
-*.png
 *.pt
 training_logs
 mlruns
