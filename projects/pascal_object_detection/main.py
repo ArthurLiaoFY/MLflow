@@ -14,35 +14,65 @@ from torchvision.transforms import v2
 cudnn.benchmark = True
 
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 
 
-def plot_image(source: str = "train", image_idx: str = "000012"):
-    img = cv2.cvtColor(
-        cv2.imread(
-            filename=image_config[source][image_idx]["image_path"],
-            flags=cv2.IMREAD_COLOR,
-        ),
-        cv2.COLOR_BGR2RGB,
-    )
-    for bounding_box, label in zip(
-        *extract_xml_info(image_config[source][image_idx]["annotation_path"])
-    ):
-        cv2.rectangle(
-            img=img,
-            pt1=(bounding_box[0], bounding_box[1]),
-            pt2=(bounding_box[2], bounding_box[3]),
-            color=(0, 255, 0),
-        )
-        cv2.putText(
-            img=img,
-            text=label[0],
-            org=(int((bounding_box[0] + bounding_box[2]) / 2), bounding_box[1]),
-            fontFace=0,
-            fontScale=0.7,
-            color=(0, 255, 0),
-        )
+def plot_image(
+    images: np.ndarray,
+    bounding_boxes: np.ndarray,
+    labels: np.ndarray,
+    rows: int = 4,
+    cols: int = 4,
+):
+    fig, axes = plt.subplots(rows, cols, figsize=(20, 20))
+    axes = axes.flatten()  # 展平軸數組，方便逐一處理
 
-    plt.imshow(img)
+    for idx, ax in enumerate(axes):
+        if idx < len(images):
+            image = images[idx]
+            boxes = bounding_boxes[idx]
+            label = labels[idx]
+
+            # 顯示圖像
+            ax.imshow(image)
+
+            # 繪製邊界框和標籤
+            for bounding_box, label in zip(boxes, label):
+                if label == "background":
+                    continue
+                else:
+                    x_min, y_min, x_max, y_max = bounding_box
+                    rect = Rectangle(
+                        xy=(x_min, y_min),
+                        width=x_max - x_min,
+                        height=y_max - y_min,
+                        linewidth=2,
+                        edgecolor="lime",
+                        facecolor="none",
+                    )
+                    ax.add_patch(rect)
+
+                    ax.text(
+                        x=(x_min + x_max) / 2,
+                        y=y_min - 5,
+                        s=label,
+                        color="lime",
+                        fontsize=10,
+                        horizontalalignment="center",
+                        bbox=dict(
+                            facecolor="black",
+                            alpha=0.5,
+                            edgecolor="none",
+                        ),
+                    )
+
+            ax.axis("off")
+        else:
+            # 如果沒有更多圖像，隱藏多餘的子圖
+            ax.axis("off")
+
+    plt.tight_layout()
+    plt.show()
 
 
 def extract_xml_info(annotation_path: str, max_objects_per_image: int):
@@ -187,8 +217,6 @@ class PascalVOCImageDataset(Dataset):
                 [[self.label_to_idx.get(label)] for label in labels],
                 dtype=torch.int8,
             ),
-            image.shape[0] / self.aim_height,
-            image.shape[1] / self.aim_width,
         )
 
 
@@ -196,6 +224,7 @@ class PascalVOCImageDataset(Dataset):
 image_config = {
     "train": {
         idx: {
+            "image_name": img_name,
             "image_path": os.path.join(
                 "./data/archive/VOCtrainval_06-Nov-2007/VOCdevkit/VOC2007/JPEGImages",
                 img_name + ".jpg",
@@ -217,6 +246,7 @@ image_config = {
     },
     "val": {
         idx: {
+            "image_name": img_name,
             "image_path": os.path.join(
                 "./data/archive/VOCtrainval_06-Nov-2007/VOCdevkit/VOC2007/JPEGImages",
                 img_name + ".jpg",
@@ -238,6 +268,7 @@ image_config = {
     },
     "test": {
         idx: {
+            "image_name": img_name,
             "image_path": os.path.join(
                 "./data/archive/VOCtest_06-Nov-2007/VOCdevkit/VOC2007/JPEGImages",
                 img_name + ".jpg",
@@ -267,13 +298,20 @@ pvid = PascalVOCImageDataset(
     is_inception_backbone=False,
 )
 # %%
-img, bboxes, labels, scale_height, scale_width = next(
+img, bboxes, labels = next(
     iter(
-        DataLoader(pvid, batch_size=64, shuffle=True),
+        DataLoader(pvid, batch_size=16, shuffle=True),
     ),
 )
 # %%
-plt.imshow(img[0].permute(1, 2, 0).numpy())
+plot_image(
+    images=img.permute(0, 2, 3, 1).numpy(),
+    bounding_boxes=bboxes.numpy(),
+    labels=[
+        [pvid.idx_to_label.get(label) for label in labels[idx].numpy().squeeze()]
+        for idx in range(len(labels))
+    ],
+)
 # %%
 print("Min value:", np.min(img[0].numpy()))
 print("Max value:", np.max(img[0].numpy()))
