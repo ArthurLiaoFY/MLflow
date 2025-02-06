@@ -33,10 +33,8 @@ def plot_image(
             boxes = bounding_boxes[idx]
             label = labels[idx]
 
-            # 顯示圖像
             ax.imshow(image)
 
-            # 繪製邊界框和標籤
             for bounding_box, label in zip(boxes, label):
                 if label == "background":
                     continue
@@ -68,7 +66,6 @@ def plot_image(
 
             ax.axis("off")
         else:
-            # 如果沒有更多圖像，隱藏多餘的子圖
             ax.axis("off")
 
     plt.tight_layout()
